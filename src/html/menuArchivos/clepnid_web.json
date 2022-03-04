@@ -1,0 +1,9 @@
+[
+	{
+    "Web": {
+        "HtmlBodyReplace": "no hay rutas",
+		"Html": "./index.html",
+		"rutaHttp": "/menuArchivos"
+        }
+    }
+]

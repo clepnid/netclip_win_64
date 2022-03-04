@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+            <meta content="width=device-width, initial-scale=1" name="viewport">
+                <title>
+                    Clepnid
+                </title>
+                <style type="text/css">
+                    * {  
+                    box-sizing: border-box;  
+                   }  
+                   body {  
+                    background-color: rebeccapurple;  
+                    font-family: 'Poppins', sans-serif;  
+                    display: flex;  
+                    flex-direction: column;  
+                    align-items: center;  
+                    justify-content: center;  
+                    height: 100vh;  
+                    overflow: hidden;  
+                    margin: 0;  
+                   }  
+                   .btn {  
+                    background-color: #ffffff;  
+                    color: rebeccapurple;  
+                    font-family: inherit;  
+                    font-weight: bold;  
+                    padding: 1rem;  
+                    border-radius: 5px;  
+                    border: none;  
+                    cursor: pointer;  
+                   }  
+                   .btn:focus {  
+                    outline: none;  
+                   }  
+                   .btn:active {  
+                    transform: scale(0.98);  
+                   }  
+                   #toasts {  
+                    position: fixed;  
+                    bottom: 10px;  
+                    right: 10px;  
+                    display: flex;  
+                    flex-direction: column;  
+                    align-items: flex-end;  
+                   }  
+                   #bodydesc{
+                      margin-left:auto; 
+                      margin-right:auto;
+                      margin-bottom: 10px; 
+                      width: 90%; 
+                      height: 80%; 
+                      overflow: auto;
+                   }
+                   .toast {  
+                    background-color: #fff;  
+                    border-radius: 5px;  
+                    padding: 1rem 2rem;  
+                    margin: 0.5rem;  
+                   }  
+                   #texto{
+                     color: whitesmoke;
+                   }
+                   .toast.info {  
+                    color: rebeccapurple;  
+                   }  
+                   .toast.success {  
+                    color: green;  
+                   }  
+                   .toast.error {  
+                    color: red;  
+                   }
+                </style>
+            </meta>
+        </meta>
+    </head>
+    <body>
+        <div id="toasts">
+        </div>
+        <div id="bodydesc">
+            <p id="texto">
+                no hay nada que copiar
+            </p>
+        </div>
+        <button id="button">
+            Copiar
+        </button>
+        <script src="script.js">
+        </script>
+    </body>
+</html>

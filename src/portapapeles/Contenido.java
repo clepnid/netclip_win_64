@@ -1,11 +1,11 @@
 package portapapeles;
 
-import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import red.Serializar_funciones;
+import compartirQR.ClepnidJson;
+import compartirQR.ConfiguracionJson;
 import ventana.Ventana;
 
 /**
@@ -24,16 +24,14 @@ public class Contenido implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public enum Tipo {
-		Texto, Ficheros, Imagen
+		Texto, Ficheros, Html
 	}
 
 	public Tipo tipo;
 	public String texto = null;
-	public byte[] imagen_bytes = null;
-	public int imagen_ancho = 0;
-	public int imagen_alto = 0;
 	public ArrayList<String[]> listaFicheros = null;
 	public int id = 0;
+	private ArrayList<ArrayList<ConfiguracionJson>> listaModulos;
 
 	/**
 	 * Constructor para definir las variables:
@@ -47,7 +45,7 @@ public class Contenido implements Serializable {
 		this.tipo = tipo;
 		this.id = (int) ((99999999 * Math.random() + 1));
 	}
-
+	
 	/**
 	 * Constructor para definir las variables:
 	 * <ul>
@@ -60,30 +58,12 @@ public class Contenido implements Serializable {
 	 */
 
 	public Contenido(String texto) {
-		this.tipo = Tipo.Texto;
+		if (Html.hasHTMLTags(texto)) {
+			this.tipo = Tipo.Html;
+		} else {
+			this.tipo = Tipo.Texto;
+		}
 		this.texto = texto;
-		this.id = (int) ((99999999 * Math.random() + 1));
-	}
-
-	/**
-	 * Constructor para definir las variables:
-	 * <ul>
-	 * <li>tipo: categoriza el contenido de esta clase</li>
-	 * <li>imagen_bytes: {@link BufferedImage} bytes de la imagen pasada por
-	 * parametros</li>
-	 * <li>imagen_ancho: numero del ancho de la imagen pasada por parametros</li>
-	 * <li>imagen_alto: numero del alto de la imagen pasada por parametros</li>
-	 * <li>id: int que hace uso del metodo random() de {@link Math}</li>
-	 * </ul>
-	 * 
-	 * @param imagen {@link BufferedImage} a contener.
-	 */
-
-	public Contenido(BufferedImage imagen) {
-		this.tipo = Tipo.Imagen;
-		this.imagen_bytes = Serializar_funciones.imageToByte(imagen);
-		imagen_ancho = imagen.getWidth();
-		imagen_alto = imagen.getHeight();
 		this.id = (int) ((99999999 * Math.random() + 1));
 	}
 
@@ -103,6 +83,10 @@ public class Contenido implements Serializable {
 		this.tipo = Tipo.Ficheros;
 		this.listaFicheros = ficheros.ficherosToContenido();
 		this.id = (int) ((99999999 * Math.random() + 1));
+		this.listaModulos = new ArrayList<ArrayList<ConfiguracionJson>>();
+		for (String[] strings : listaFicheros) {
+			this.listaModulos.add(ClepnidJson.obtenerConfiguraciones(Ficheros.getExtensionFichero(strings[0])));
+		}
 	}
 
 	/**
@@ -110,7 +94,7 @@ public class Contenido implements Serializable {
 	 * 
 	 * @param contenido {@link Contenido} a compararar.
 	 * @return <code>true</code> tienen el mismo id. <code>false</code> no tienen el
-	 *                          mismo id.
+	 *         mismo id.
 	 */
 
 	public boolean equals(Contenido contenido) {
@@ -121,6 +105,14 @@ public class Contenido implements Serializable {
 			return true;
 		}
 		return false;
+	}
+
+	public ArrayList<ArrayList<ConfiguracionJson>> getListaModulos() {
+		return listaModulos;
+	}
+
+	public void setListaModulos(ArrayList<ArrayList<ConfiguracionJson>> listaModulos) {
+		this.listaModulos = listaModulos;
 	}
 
 }

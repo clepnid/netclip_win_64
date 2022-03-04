@@ -5,7 +5,6 @@ import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 /**
@@ -35,9 +34,11 @@ public class DatoSeleccion implements Transferable, ClipboardOwner {
 
 		try {
 			if (objeto.getClass().equals(String.class)) {
-				this.dataFlavor = new DataFlavor("application/x-java-serialized-object; class=java.lang.String");
-			} else if (objeto.getClass().equals(BufferedImage.class)) {
-				this.dataFlavor = new DataFlavor("image/x-java-image; class=java.awt.Image");
+				if (Html.hasHTMLTags(objeto)) {
+					this.dataFlavor = DataFlavor.allHtmlFlavor;
+				} else {
+					this.dataFlavor = new DataFlavor("application/x-java-serialized-object; class=java.lang.String");
+				}
 			} else if (objeto.getClass().toString().equals("class java.util.Arrays$ArrayList")) {
 				this.dataFlavor = new DataFlavor("application/x-java-file-list; class=java.util.List");
 			}

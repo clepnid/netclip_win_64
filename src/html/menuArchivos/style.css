@@ -1,0 +1,254 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background-color: #eeeeee;
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+:focus {
+  outline: 0;
+}
+#js-search {
+  box-sizing: border-box;
+  position: relative;
+  padding: 15px 40px 15px 20px;
+  width: 20px;
+  color: #525252;
+  font-size: 16px;
+  font-weight: 100;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 5px;
+  background: linear-gradient(to right, #ffffff 0%, #464747 #f9f9f9 100%);
+  transition: width 0.4s ease;
+  outline: none;
+}
+.container-search-focus #js-search {
+  box-sizing: border-box;
+  width: 300px;
+}
+#buscador {
+  box-sizing: border-box;
+  position: relative;
+  left: -37px;
+  color: #8233c5;
+}
+.container-search {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#container {
+  height: 100%;
+}
+
+#sidebar {
+  position: absolute;
+  left: -300px;
+  top: 0;
+  width: 370px;
+  height: 100%;
+  box-shadow: 2px 0 20px 0 black;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: left 0.5s, background-color 0.3s;
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 100;
+}
+
+#sidebar:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+#sidebar.focused {
+  left: 0;
+}
+
+#icons {
+  margin-right: 22px;
+  transition: opacity 0.5s;
+  z-index: 10;
+}
+
+#icons div {
+  text-align: center;
+  margin: 30px 0;
+}
+
+#icons .fa {
+  color: #ccc;
+  font-size: 30px;
+}
+
+#sidebar.focused #icons {
+  opacity: 0;
+}
+
+#menu {
+  width: 100%;
+  height: 100%;
+  background-color: red;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.5s;
+  box-sizing: border-box;
+  padding-top: 70px;
+}
+
+#sidebar.focused #menu {
+  opacity: 1;
+}
+
+#menu .item {
+  height: 70px;
+  line-height: 70px;
+  color: white;
+  font-size: 25px;
+  padding-left: 90px;
+  box-sizing: border-box;
+  cursor: default;
+  display: none;
+  cursor: pointer;
+}
+
+#menu .item:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+#menu #item-focus {
+  background-color: white;
+  color: red !important;
+}
+
+#menu .item .fa {
+  width: 40px;
+}
+
+#sidebar.focused #menu .item {
+  display: block;
+}
+
+.mainbox {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 40px 40px 0 120px;
+}
+
+#search-box-placeholder {
+  margin-top: 20px;
+  width: 70%;
+  height: 50px;
+  line-height: 50px;
+  background-color: #666;
+  box-sizing: border-box;
+  padding-left: 15px;
+  cursor: pointer;
+  font-size: 25px;
+  color: #aaa;
+}
+
+#search-box-placeholder:hover,
+.search-box-placeholder-focus {
+  color: black !important;
+  background-color: white !important;
+}
+
+#content {
+  height: 100%;
+  position: relative;
+}
+#hola {
+  display: flex;
+  overflow-x: auto;
+}
+#content .content {
+  white-space: nowrap;
+  font-size: 0;
+  padding: 50px;
+  margin: -50px;
+  display: flex;
+  overflow-x: hidden;
+}
+
+#content h1 {
+  font-size: 30px;
+  height: 80px;
+  padding: 0;
+  margin: 0;
+  line-height: 80px;
+}
+
+#content .item {
+  display: inline-block;
+  width: 350px;
+  height: 380px;
+  padding-left: 50px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  /*background-color: #666;*/
+  font-size: 1rem;
+  margin-right: 20px;
+  cursor: pointer;
+}
+#content #item-focus {
+  transform: scale(1.04);
+  transition: all 0.2s ease-in-out;
+}
+#item-focus #titulo,
+#item-focus #descripcion,
+#item-focus #botonBar {
+  transform: scale(0.92);
+}
+
+#item-focus #titulo {
+  transform: translateY(-10px);
+}
+
+#item-focus #descripcion {
+  transform: translateY(-12px);
+}
+#item-focus #botonBar {
+  border-radius: borderRadius - 2px;
+  transform: translateY(-14px) scale(0.9);
+}
+#item-focus #imagen {
+  transform: translateY(4px) scale(0.92);
+  border-radius: borderRadius - 2px;
+}
+#item-focus #imagen::before {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+#content .animate {
+  width: 25%;
+  padding-bottom: 0;
+  transition: padding-bottom 0.3s ease;
+}
+
+#content .placeholder {
+  width: 25%;
+  padding-bottom: calc(30% + 80px);
+}
+
+.contentgroup {
+  width: 100%;
+  z-index: 2;
+  opacity: 1;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.contentgroup.fading-out {
+  opacity: 0;
+  display: none;
+}

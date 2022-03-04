@@ -1,0 +1,7 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\Run script]
+@="Run &script"
+
+[HKEY_CLASSES_ROOT\*\shell\Run script\command]
+@="\"H:\\BATCH_FILE_PATH\\context-batch.bat\" \"%1\""

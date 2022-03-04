@@ -1,8 +1,12 @@
 package portapapeles;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
+
+import ventana.Ventana;
 
 /**
  * Clase para manejar ficheros {@link List} de {@link File}
@@ -15,6 +19,8 @@ import java.util.List;
 public class Ficheros {
 
 	public List<File> ficheros;
+	public List<Long> tamanyos;
+	public long tamanyoTodos;
 
 	/**
 	 * Constructor para definir los ficheros a manejar en la clase.
@@ -23,12 +29,90 @@ public class Ficheros {
 	 */
 
 	public Ficheros(List<?> rutas) {
+		tamanyoTodos = (long) 0;
+		tamanyos = new ArrayList<Long>();
 		ficheros = new ArrayList<File>();
 		for (Object object : rutas) {
-			String string = object.toString();
-			ficheros.add(new File(string));
+			if (object.getClass().equals(File.class)) {
+				File ficheroAux = (File) object;
+				try {
+					recorrerFicheros(ficheroAux);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				ficheros.add(new File(ficheroAux.toString()));
+			}
+
 		}
 
+	}
+
+	public void recorrerFicheros(File outFile) throws Exception {
+		String relativePath = outFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+		outFile = outFile.getAbsoluteFile();
+		tamanyos.add((long) 0);
+		if (outFile.isDirectory()) {
+			recorrerCarpeta(outFile, relativePath, tamanyos.size() - 1);
+		} else {
+			anaydirTamanyoFichero(outFile, tamanyos.size() - 1);
+		}
+	}
+
+	/**
+	 * Envia los ficheros contenidos en la carpeta.
+	 * 
+	 * @param zipOpStream  {@link ZipOutputStream} buffer para enviar fichero.
+	 * @param folder       {@link File} carpeta.
+	 * @param relativePath {@link File} ruta relativa.
+	 */
+
+	public void recorrerCarpeta(File folder, String relativePath, int index) throws Exception {
+		File[] filesList = folder.listFiles();
+		for (File file : filesList) {
+			if (file.isDirectory()) {
+				recorrerCarpeta(file, relativePath, index);
+			} else {
+				anaydirTamanyoFichero(file, index);
+			}
+		}
+	}
+
+	public void anaydirTamanyoFichero(File file, int index) throws Exception {
+		tamanyoTodos += file.length();
+		tamanyos.set(index, (tamanyos.get(index) + file.length()));
+	}
+
+	public static String bitsRepresentacion(float bits, String tipo) {
+		float bits_aux = (float) 0;
+		String tipo_Aux = tipo;
+		switch (tipo) {
+		case "bits":
+			bits_aux = bits / 8;
+			tipo = "bytes";
+			break;
+		case "bytes":
+			bits_aux = bits / 1024;
+			tipo = "KB";
+			break;
+		case "KB":
+			bits_aux = bits / 1024;
+			tipo = "MB";
+			break;
+		case "MB":
+			bits_aux = bits / 1024;
+			tipo = "GB";
+			break;
+
+		default:
+			break;
+		}
+		if (1 < bits_aux && !tipo.equals("GB")) {
+			return bitsRepresentacion(bits_aux, tipo);
+		} else {
+			DecimalFormat formato = new DecimalFormat("#.##");
+			return formato.format(bits) + " " + tipo_Aux;
+		}
 	}
 
 	/**
@@ -56,7 +140,7 @@ public class Ficheros {
 	/**
 	 * devuelve extension de un fichero.
 	 * 
-	 * @param nombre {@link String} nombre del fichero a obtener extension. 
+	 * @param nombre {@link String} nombre del fichero a obtener extension.
 	 * @return {@link String} extension de fichero.
 	 */
 
@@ -74,8 +158,15 @@ public class Ficheros {
 	 * @param ruta ruta de un fichero para obtener extension.
 	 * @return {@link String} con el tipo de extension de un fichero.
 	 */
+	public static Boolean esTipo(String ruta,String extension) {
+		if (getExtensionFichero(ruta).toUpperCase().equals(extension)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-	public String tipoFichero(String ruta) {
+	public static String tipoFichero(String ruta) {
 		String extension = null;
 		if (!ruta.equals("carpeta")) {
 			extension = getExtensionFichero(ruta).toUpperCase();
@@ -86,7 +177,7 @@ public class Ficheros {
 		String tipo = "";
 		switch (extension) {
 		case "CARPETA":
-			tipo = "carpeta";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_carpeta");
 			break;
 		case "ABW":
 		case "ACL":
@@ -153,7 +244,7 @@ public class Ficheros {
 		case "WRI":
 		case "XHTML":
 		case "XML":
-			tipo = "fichero texto";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_fichero_texto");
 			break;
 		case "ADB":
 		case "ADS":
@@ -318,7 +409,7 @@ public class Ficheros {
 		case "HTML":
 		case "DTD":
 		case "ASP":
-			tipo = "codigo";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_codigo");
 			break;
 		case "8BF":
 		case "A":
@@ -357,7 +448,7 @@ public class Ficheros {
 		case "VBX":
 		case "OCX":
 		case "TBL":
-			tipo = "ejecutable";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_ejecutable");
 			break;
 		case "FITS":
 		case "SILO":
@@ -399,7 +490,7 @@ public class Ficheros {
 		case "MGH":
 		case "MGZ":
 		case "MNC":
-			tipo = "datos cientificos";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_datos_cientificos");
 			break;
 		case "AAF":
 		case "3GP":
@@ -438,7 +529,7 @@ public class Ficheros {
 		case "WTV":
 		case "YUV":
 		case "WEBM":
-			tipo = "video";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_tipo_fichero_video");
 			break;
 		case "VFD":
 		case "VHD":
@@ -464,7 +555,7 @@ public class Ficheros {
 		case "COW":
 		case "QCOW":
 		case "QED":
-			tipo = "maquina virtual";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_maquina_virtual");
 			break;
 		case "ISO":
 		case "NRG":
@@ -481,7 +572,7 @@ public class Ficheros {
 		case "CDI":
 		case "CUE":
 		case "B6T":
-			tipo = "disco";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_disco");
 			break;
 		case "123":
 		case "AB2":
@@ -518,7 +609,7 @@ public class Ficheros {
 		case "XLW":
 		case "TSV":
 		case "DIF":
-			tipo = "hoja_calculo";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_hoja_calculo");
 			break;
 		case "8SVX":
 		case "16SVX":
@@ -595,7 +686,7 @@ public class Ficheros {
 		case "VGM":
 		case "YM":
 		case "PVD":
-			tipo = "audio";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_audio");
 			break;
 		case "DVI":
 		case "PLD":
@@ -607,7 +698,7 @@ public class Ficheros {
 		case "CSS":
 		case "XSLT":
 		case "TPL":
-			tipo = "documento";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_documento");
 			break;
 		case "GXK":
 		case "SSH":
@@ -628,7 +719,7 @@ public class Ficheros {
 		case "BPW":
 		case "KDB":
 		case "KDBX":
-			tipo = "seguridad";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_seguridad");
 			break;
 		case "3DV":
 		case "AMF":
@@ -661,7 +752,7 @@ public class Ficheros {
 		case "EMF":
 		case "ART":
 		case "XAR":
-			tipo = "vector";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_vector");
 			break;
 		case "BLP":
 		case "BMP":
@@ -735,7 +826,7 @@ public class Ficheros {
 		case "XCF":
 		case "XMP":
 		case "ZIF":
-			tipo = "fichero imagen";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_fichero_imagen");
 			break;
 		case "4DB":
 		case "4DD":
@@ -792,7 +883,7 @@ public class Ficheros {
 		case "WAJOURNAL":
 		case "WDB":
 		case "WMDB":
-			tipo = "base datos";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_base_datos");
 			break;
 		case "ALIAS":
 		case "JNLP":
@@ -802,7 +893,7 @@ public class Ficheros {
 		case "SYM":
 		case "DESKTOP":
 		case "LNK":
-			tipo = "enlace";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_enlace");
 			break;
 		case "7Z":
 		case "AAPKG":
@@ -886,7 +977,7 @@ public class Ficheros {
 		case "Z":
 		case "ZOO":
 		case "ZIP":
-			tipo = "comprimido";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_comprimido");
 			break;
 
 		case "A26":
@@ -916,7 +1007,7 @@ public class Ficheros {
 		case "SG":
 		case "SMD":
 		case "32X":
-			tipo = "juego";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_juego");
 			break;
 
 		case "GSLIDES":
@@ -940,11 +1031,11 @@ public class Ficheros {
 		case "SXI":
 		case "THMX":
 		case "RELOJ":
-			tipo = "presentacion";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_presentacion");
 			break;
 
 		default:
-			tipo = "desconocido";
+			tipo = Ventana.idioma.getProperty("tipo_fichero_desconocido");
 			break;
 		}
 		return tipo;
@@ -958,8 +1049,70 @@ public class Ficheros {
 	 *         de un fichero.
 	 */
 
-	public String rutaImagen(String tipo) {
-		return ".\\\\\\\\src\\\\imagenes\\\\" + tipo + ".gif";
+	public static String rutaImagen(String tipo) {
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_carpeta"))) {
+			return "./src/imagenes/carpeta.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_fichero_texto"))) {
+			return "./src/imagenes/fichero_texto.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_codigo"))) {
+			return "./src/imagenes/codigo.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_ejecutable"))) {
+			return "./src/imagenes/ejecutable.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_datos_cientificos"))) {
+			return "./src/imagenes/datos_cientificos.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_tipo_fichero_video"))) {
+			return "./src/imagenes/video.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_maquina_virtual"))) {
+			return "./src/imagenes/maquina_virtual.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_disco"))) {
+			return "./src/imagenes/disco.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_hoja_calculo"))) {
+			return "./src/imagenes/hoja_calculo.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_audio"))) {
+			return "./src/imagenes/audio.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_documento"))) {
+			return "./src/imagenes/documento.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_seguridad"))) {
+			return "./src/imagenes/seguridad.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_vector"))) {
+			return "./src/imagenes/vector.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_fichero_imagen"))) {
+			return "./src/imagenes/fichero_imagen.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_base_datos"))) {
+			return "./src/imagenes/base_datos.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_enlace"))) {
+			return "./src/imagenes/enlace.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_comprimido"))) {
+			return "./src/imagenes/comprimido.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_juego"))) {
+			return "./src/imagenes/juego.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_presentacion"))) {
+			return "./src/imagenes/presentacion.gif";
+		}
+		if (tipo.equals(Ventana.idioma.get("tipo_fichero_desconocido"))) {
+			return "./src/imagenes/desconocido.gif";
+		}
+		
+		
+		return "";
 	}
 
 	/**
@@ -988,7 +1141,8 @@ public class Ficheros {
 	/**
 	 * devuelve una lista {@link ArrayList} conteniendo objetos {@link String} con
 	 * el contendio de esta clase {@link Ficheros} que construye una clase
-	 * {@link Contenido} de tipo Ficheros, para mostrar en la clase {@link ventana.Ventana}.
+	 * {@link Contenido} de tipo Ficheros, para mostrar en la clase
+	 * {@link ventana.Ventana}.
 	 * 
 	 * @return {@link ArrayList} que contiene {@link String} para mostrar por la
 	 *         clase {@link ventana.Ventana}.
@@ -999,14 +1153,14 @@ public class Ficheros {
 		for (File fichero : ficheros) {
 			// se diferencian los ficheros de los directorios
 			if (fichero.isFile()) {
-				String[] ficheroToContenido = { "Nombre:  " + fichero.getName(),
-						"Peso:  " + String.valueOf(fichero.length()) + "bits",
-						"Tipo Fichero:  " + tipoFichero(fichero.getAbsolutePath()),
-						rutaImagen(tipoFichero(fichero.getPath())) };
+				String[] ficheroToContenido = { fichero.getName(),
+						Ventana.idioma.getProperty("fichero_peso")+":  " + bitsRepresentacion(fichero.length(), "bytes"),
+						tipoFichero(fichero.getAbsolutePath()), rutaImagen(tipoFichero(fichero.getPath())),
+						fichero.getAbsolutePath() };
 				listaFicherosToContenido.add(ficheroToContenido);
 			} else if (fichero.isDirectory()) {
-				String[] ficheroToContenido = { "Nombre:  " + fichero.getName(), "Carpeta", "",
-						rutaImagen(tipoFichero("carpeta")) };
+				String[] ficheroToContenido = { fichero.getName(), "Carpeta", "", rutaImagen(tipoFichero("carpeta")),
+						fichero.getAbsolutePath() };
 				listaFicherosToContenido.add(ficheroToContenido);
 			}
 		}

@@ -1,0 +1,43 @@
+Pasos: crear dos script (uno para cuando haces click derecho sobre un elemento y otro para cuando haces click derecho en el vacío) los cuales ejecutaran un ejecutable .jar
+un ejecutable será de copiar el archivo seleccionado para la red.
+y otro sera de pegar lo que este disponible en red.
+
+Los cambios de registro que hice se pueden replicar con este archivo REG:
+--------------------------------------------------------------------
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\shell\Run Batch script]
+@="&Run Batch script"
+
+[HKEY_CLASSES_ROOT\Directory\shell\Run Batch script\command]
+@="\"H:\\BATCH_FILE_PATH\\context-batch.bat\" \"%1\""
+--------------------------------------------------------------------
+
+Esto solo agrega un elemento de menú contextual para todos los directorios / carpetas en Windows. Si desea que se muestre para todos y cada uno de los archivos, puede usar esto:
+
+--------------------------------------------------------------------
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\Run script]
+@="Run &script"
+
+[HKEY_CLASSES_ROOT\*\shell\Run script\command]
+@="\"H:\\BATCH_FILE_PATH\\context-batch.bat\" \"%1\""
+--------------------------------------------------------------------
+
+Alternativamente, puede agregar su secuencia de comandos por lotes a la Send Tolista de elementos creando un acceso directo a su secuencia de comandos por lotes y colocándolo debajo %APPDATA%\Microsoft\Windows\SendTo(o ingrese shell:sendto en la barra de direcciones)
+
+Si desea que su secuencia de comandos se muestre en el menú contextual que aparece cuando hace clic con el botón derecho en el espacio vacío dentro de un directorio (¿fondo del directorio?), Puede usar el siguiente archivo REG:
+
+--------------------------------------------------------------------
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Run Batch script]
+@="&Run Batch script"
+"Icon"="%SystemRoot%\\System32\\shell32.dll,71"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Run Batch script\command]
+@="H:\\BATCH_FILE_PATH\\context-batch.bat \"%V\""
+--------------------------------------------------------------------
+
+No necesitas la "Icon"="%SystemRoot%\\System32\\shell32.dll,71" línea. Simplemente agrega un ícono a su menú contextual que se ve así:

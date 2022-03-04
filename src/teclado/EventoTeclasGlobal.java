@@ -1,10 +1,11 @@
 package teclado;
 
-import java.awt.Image;
-import java.awt.Toolkit;
+import java.awt.TrayIcon.MessageType;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -16,13 +17,13 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import historial.Historial;
+import historial.ListaHistorial;
 import portapapeles.Clip;
 import portapapeles.Contenido;
 import portapapeles.DatoSeleccion;
 import portapapeles.Ficheros;
 import portapapeles.Contenido.Tipo;
-import red.Serializar_funciones;
-import red.broadcast.BroadcastingIpControl;
 import red.compartirFicheros.Cliente;
 import red.compartirFicheros.Servidor;
 import ventana.Ventana;
@@ -43,10 +44,32 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 	private Clip clip;
 	Transferable backupClip;
 	public String rutaEscritorio = "";
+	private FlavorListener flavorListener;
+	private String stringAnterior;
+	private Ficheros ficherosAnterior;
 	private Ventana ventana;
+	public static boolean clienteFicherosFuncionando = false;
 
 	EventoTeclasGlobal(Ventana ventana) {
 		clip = new Clip();
+		flavorListener = new FlavorListener() {
+
+			@Override
+			public void flavorsChanged(FlavorEvent e) {
+				if (clip.pulsadoTeclas) {
+					clip.copiadoDelSistema = true;
+					clip.contenidoRecogido = false;
+					synchronized (clip.contenidoRecogido) {
+						clip.proccessClipboard(clip.clipboard);
+					}
+					clip.recogido = true;
+					clip.copiadoDelSistema = false;
+				}
+			}
+		};
+		clip.setFlavorListener(flavorListener);
+		stringAnterior = null;
+		ficherosAnterior = null;
 		this.ventana = ventana;
 	}
 
@@ -88,16 +111,10 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 		if (copiar && (!pressed.contains(NativeKeyEvent.VC_CONTROL) && !pressed.contains(NativeKeyEvent.VC_SHIFT)
 				&& !pressed.contains(NativeKeyEvent.VC_1))) {
 			copiar = false;
-			boolean copiado = false;
-			while (!copiado) {
-				try {
-					copiar();
-					copiado = true;
-				} catch (InterruptedException e) {
-					;
-				} catch (IllegalStateException e) {
-					;
-				}
+			try {
+				copiar();
+			} catch (InterruptedException e) {
+				clip.tipoContenido = "";
 			}
 		}
 		if (pegar && (!pressed.contains(NativeKeyEvent.VC_CONTROL) && !pressed.contains(NativeKeyEvent.VC_SHIFT)
@@ -118,86 +135,183 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 	 * de texto, imagen o rutas de ficheros del portapapeles del sistema
 	 * {@link Clip}, los muestra por {@link Ventana} y restaura el portapapeles al
 	 * estado de antes de pulsar Ctrl + c. Con este metodo nos convertimos en
-	 * servidor {@link BroadcastingIpControl}.
-	 * @throws InterruptedException cuando se interrumpe el hilo para copiar.
+	 * servidor {@link MulticastCambioServidor}.
+	 * 
+	 * @throws InterruptedException cuando se interrumpe el hilo para copiar
 	 */
 
 	public void copiar() throws InterruptedException {
-		backupClip = (Transferable) clip.getContenidoClipboard();
-		Object backupClipAux = clip.getContenidoEspecifico();
-		PulsarTeclas.copiar();
-		Thread.sleep(500);
-		int cont = 0;
-		Object contenidoSeleccion = clip.getContenidoEspecifico();
-		while (cont < 10 && backupClip.equals(contenidoSeleccion)) {
-			cont++;
-			contenidoSeleccion = clip.getContenidoEspecifico();
+		clip.clipboard = Clip.resetearClipboard(clip.clipboard, flavorListener);
+		try {
+			backupClip = (Transferable) Clip.getContenidoClipboard(clip.clipboard, flavorListener);
+		} catch (IOException e) {
+			backupClip = null;
 		}
-		if (contenidoSeleccion == null || backupClip.equals(clip.getContenidoClipboard())) {
-			clip.tipoContenido = "";
-			clip = new Clip();
-		} else {
-			try {
-				String texto = clip.getString();
-				BufferedImage imagen = clip.getImagen();
-				List<?> rutas_ficheros = clip.getListaFicheros();
-				if (!(texto == null) && !texto.equals(backupClipAux)) {
-					ventana.controlBroadcast.serServidor(this);
-					synchronized (this) {
-						if (!ventana.controlBroadcast.soyServidor) {
-							this.wait();
+		String myString = "Clepnid";
+		StringSelection stringSelection = new StringSelection(myString);
+		clip.setContenidoClipboard(stringSelection);
+		while (!clip.introducido(myString)) {
+			Thread.sleep(100);
+		}
+		clip.tipoContenido = "";
+		clip.contenidoRecogido = null;
+		System.out.println(clip.recogido);
+		System.out.println("habilitar------------------");
+		System.out.println("copiar------------------");
+		clip.pulsadoTeclas = true;
+		PulsarTeclas.copiar();
+		System.out.println("esperar------------------");
+		clip.recogido = false;
+		System.out.println("antes:" + clip.recogido);
+		while (!clip.recogido || clip.copiadoDelSistema) {
+			System.out.println("no recogido");
+			Thread.sleep(100);
+			System.out.println(clip.copiadoDelSistema + ", " + clip.introducido(myString));
+			if ((!clip.copiadoDelSistema && clip.introducido(myString))
+					|| !clip.copiadoDelSistema && !clip.introducido(myString)) {
+				// no se ha seleccionado nada por lo tanto no se puede recoger del portapapeles
+				break;
+			}
+		}
+		System.out.println("SALIR");
+		System.out.println("despues:" + clip.recogido);
+		clip.pulsadoTeclas = false;
+		clip.recogido = false;
+		if (ventana.contenido == null) {
+			if (clip.contenidoRecogido != null) {
+				if (clip.tipoContenido.equals("html") || clip.tipoContenido.equals("texto")) {
+					String string = null;
+					synchronized (clip.contenidoRecogido) {
+						if (!clip.contenidoRecogido.getClass().equals(Boolean.class)) {
+							string = (String) clip.contenidoRecogido;
 						}
 					}
-
-					ventana.display.asyncExec(new Runnable() {
-						public void run() {
-							ventana.lblBotonServidor.setImage(ventana.lblBotonServidorImage);
-							ventana.lblHayServidor
-									.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_verde.gif"));
+					if (string != null) {
+						System.out.println("texto: " + string);
+						if (!string.contentEquals(myString)) {
+							ventanaServidorString(string);
 						}
-					});
-					ventana.mostrarContenidoPorPantalla(new Contenido(texto));
+					}
 					clip.setContenidoClipboard(backupClip);
-				} else if (!(imagen == null) && !imagen.equals(backupClipAux)) {
-					ventana.controlBroadcast.serServidor(this);
-					synchronized (this) {
-						if (!ventana.controlBroadcast.soyServidor) {
-							this.wait();
-						}
+				} else if (clip.tipoContenido.equals("ficheros")) {
+					List<?> rutas_ficheros = null;
+					synchronized (clip.contenidoRecogido) {
+						rutas_ficheros = (List<?>) clip.contenidoRecogido;
 					}
-
-					ventana.display.asyncExec(new Runnable() {
-						public void run() {
-							ventana.lblBotonServidor.setImage(ventana.lblBotonServidorImage);
-							ventana.lblHayServidor
-									.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_verde.gif"));
-						}
-					});
-					ventana.mostrarContenidoPorPantalla(new Contenido(imagen));
-					clip.setContenidoClipboard(backupClip);
-				} else if (!(rutas_ficheros == null) && !rutas_ficheros.equals(backupClipAux)) {
-					Ficheros ficheros = new Ficheros(rutas_ficheros);
-					ventana.ficheros = new Ficheros(rutas_ficheros);
-					ventana.controlBroadcast.serServidor(this);
-					synchronized (this) {
-						if (!ventana.controlBroadcast.soyServidor) {
-							this.wait();
-						}
+					System.out.println("ficheros: ");
+					for (Object object : rutas_ficheros) {
+						System.out.println(object);
 					}
-
-					ventana.display.asyncExec(new Runnable() {
-						public void run() {
-							ventana.lblBotonServidor.setImage(ventana.lblBotonServidorImage);
-							ventana.lblHayServidor
-									.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_verde.gif"));
-						}
-					});
-					ventana.mostrarContenidoPorPantalla(new Contenido(ficheros));
+					ventanaServidorFichero(rutas_ficheros);
 					clip.setContenidoClipboard(backupClip);
 				}
-			} catch (UnsupportedFlavorException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			}
+		} else {
+			if (clip.contenidoRecogido != null) {
+				if (clip.tipoContenido.equals("html") || clip.tipoContenido.equals("texto")) {
+					if (stringAnterior != null) {
+						String string = null;
+						synchronized (clip.contenidoRecogido) {
+							if (!clip.contenidoRecogido.getClass().equals(Boolean.class)) {
+								string = (String) clip.contenidoRecogido;
+							}
+						}
+						if (string != null) {
+							System.out.println("texto: " + string);
+							if (!string.contentEquals(myString)) {
+								if (!string.equals(stringAnterior)) {
+									ventanaServidorString(string);
+								}
+							}
+						}
+						clip.setContenidoClipboard(backupClip);
+					} else {
+						String string = null;
+						synchronized (clip.contenidoRecogido) {
+							if (!clip.contenidoRecogido.getClass().equals(Boolean.class)) {
+								string = (String) clip.contenidoRecogido;
+							}
+						}
+						if (string != null) {
+							System.out.println("texto: " + string);
+							if (!string.contentEquals(myString)) {
+								ventanaServidorString(string);
+							}
+						}
+						clip.setContenidoClipboard(backupClip);
+					}
+				} else if (clip.tipoContenido.equals("ficheros")) {
+					if (ficherosAnterior != null) {
+						List<?> rutas_ficheros = null;
+						synchronized (clip.contenidoRecogido) {
+							rutas_ficheros = (List<?>) clip.contenidoRecogido;
+						}
+						System.out.println("ficheros: ");
+						for (Object object : rutas_ficheros) {
+							System.out.println(object);
+						}
+						Ficheros ficheros = new Ficheros(rutas_ficheros);
+						Boolean esIgual = true;
+						for (File ruta : ficheros.ficheros) {
+							if (!ficherosAnterior.ficheros.contains(ruta)) {
+								esIgual = false;
+							}
+						}
+						if (!esIgual) {
+							ventanaServidorFichero(rutas_ficheros);
+						}
+						clip.setContenidoClipboard(backupClip);
+					} else {
+						List<?> rutas_ficheros = null;
+						synchronized (clip.contenidoRecogido) {
+							rutas_ficheros = (List<?>) clip.contenidoRecogido;
+						}
+						System.out.println("ficheros: ");
+						for (Object object : rutas_ficheros) {
+							System.out.println(object);
+						}
+						ventanaServidorFichero(rutas_ficheros);
+						clip.setContenidoClipboard(backupClip);
+					}
+				}
+			}
+		}
+	}
+
+	public void ventanaServidorString(String string) {
+		if (string != null) {
+			if (ventana.mostrarContenidoPorPantalla(new Contenido(string))) {
+				ventana.display.asyncExec(new Runnable() {
+					public void run() {
+						ventana.lblBotonServidor.setImage(ventana.lblBotonServidorImage);
+						ventana.lblHayServidor
+								.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_verde.gif"));
+					}
+				});
+				stringAnterior = string;
+				ficherosAnterior = null;
+				ventana.multicastControl.cliente.cambioServidor();
+			} else {
+				System.out.println("no");
+			}
+		}
+	}
+
+	public void ventanaServidorFichero(List<?> rutas_ficheros) {
+		if (rutas_ficheros != null) {
+			Ficheros ficheros = new Ficheros(rutas_ficheros);
+			ventana.ficheros = new Ficheros(rutas_ficheros);
+			if (ventana.mostrarContenidoPorPantalla(new Contenido(ficheros))) {
+				ventana.display.asyncExec(new Runnable() {
+					public void run() {
+						ventana.lblBotonServidor.setImage(ventana.lblBotonServidorImage);
+						ventana.lblHayServidor
+								.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_verde.gif"));
+					}
+				});
+				ficherosAnterior = ficheros;
+				stringAnterior = null;
+				ventana.multicastControl.cliente.cambioServidor();
 			}
 		}
 	}
@@ -214,7 +328,7 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 		if (ventana.contenido != null) {
 			Transferable backupClip = (Transferable) clip.getContenidoClipboard();
 			if (ventana.contenido.tipo != Tipo.Ficheros) {
-				if (ventana.contenido.tipo == Tipo.Texto) {
+				if (ventana.contenido.tipo == Tipo.Texto || ventana.contenido.tipo == Tipo.Html) {
 					ventana.display.asyncExec(new Runnable() {
 						public void run() {
 							long ventanaActiva = getVentanaActiva();
@@ -223,40 +337,33 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 							clip.setContenidoClipboard(seleccion);
 							setVentanaActiva(ventanaActiva);
 							PulsarTeclas.pegar();
-							clip.setContenidoClipboard(backupClip);
-						}
-					});
-				}
-				if (ventana.contenido.tipo == Tipo.Imagen) {
-					ventana.display.asyncExec(new Runnable() {
-						public void run() {
-							long ventanaActiva = getVentanaActiva();
-							Image imagen = Serializar_funciones.ImageFromBytes(ventana.contenido.imagen_bytes);
-							DatoSeleccion seleccion = new DatoSeleccion(imagen);
-							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(seleccion, seleccion);
-							setVentanaActiva(ventanaActiva);
-							PulsarTeclas.pegar();
+							ListaHistorial.anyadirHistoria(new Historial(texto, Historial.fechaActual()));
 							clip.setContenidoClipboard(backupClip);
 						}
 					});
 				}
 			} else {
-				ventana.display.asyncExec(new Runnable() {
-					public void run() {
-						DirectoryDialog dialog = new DirectoryDialog(ventana.shlSwt);
-						String ruta = dialog.open();
-						if (ruta != null) {
-							red.compartirFicheros.Cliente cliente = new Cliente(ventana, ventana.controlBroadcast);
-							cliente.ruta = ruta;
-							cliente.start();
+				if (!clienteFicherosFuncionando) {
+					ventana.display.asyncExec(new Runnable() {
+						public void run() {
+							clienteFicherosFuncionando = true;
+							DirectoryDialog dialog = new DirectoryDialog(ventana.shlSwt);
+							String ruta = dialog.open();
+							if (ruta != null) {
+								red.compartirFicheros.Cliente cliente = new Cliente(ventana, ventana.multicastControl);
+								cliente.ruta = ruta;
+								cliente.start();
+							}else {
+								clienteFicherosFuncionando = false;
+							}
 						}
-					}
-				});
+					});
 
+				}else {
+					Ventana.mensajeTray("Espere a que se reciban los ficheros compartidos", MessageType.INFO);
+				}
 			}
-
 		}
-
 	}
 
 	/**
@@ -266,58 +373,52 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 
 	public void copiarContenidoBtn() {
 		if (ventana.contenido != null) {
-
 			if (ventana.contenido.tipo != Tipo.Ficheros) {
-				if (ventana.contenido.tipo == Tipo.Texto) {
+				if (ventana.contenido.tipo == Tipo.Texto || ventana.contenido.tipo == Tipo.Html) {
 					ventana.display.asyncExec(new Runnable() {
 						public void run() {
 							String texto = ventana.contenido.texto;
 							DatoSeleccion seleccion = new DatoSeleccion(texto);
 							clip.setContenidoClipboard(seleccion);
-						}
-					});
-				}
-				if (ventana.contenido.tipo == Tipo.Imagen) {
-					ventana.display.asyncExec(new Runnable() {
-						public void run() {
-							Image imagen = Serializar_funciones.ImageFromBytes(ventana.contenido.imagen_bytes);
-							DatoSeleccion seleccion = new DatoSeleccion(imagen);
-							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(seleccion, seleccion);
+							ListaHistorial.anyadirHistoria(new Historial(texto, Historial.fechaActual()));
 						}
 					});
 				}
 			}
-
 		}
-
 	}
 
 	/**
 	 * {@link Cliente} realiza una peticion al servidor {@link Servidor} y lo recibe
 	 * en la ruta introducida en {@link DirectoryDialog}
+	 * 
 	 * @param numero entero con la posición del contenido a pedir.
 	 */
 
 	public void copiarContenidoFicheroBtn(int numero) {
-		if (ventana.contenido != null) {
+		if (ventana.contenido != null && !clienteFicherosFuncionando) {
 
 			if (ventana.contenido.tipo == Tipo.Ficheros) {
 				ventana.display.asyncExec(new Runnable() {
 					public void run() {
+						clienteFicherosFuncionando = true;
 						DirectoryDialog dialog = new DirectoryDialog(ventana.shlSwt);
 						String ruta = dialog.open();
 						if (ruta != null) {
-							red.compartirFicheros.Cliente cliente = new Cliente(ventana, ventana.controlBroadcast,
+							red.compartirFicheros.Cliente cliente = new Cliente(ventana, ventana.multicastControl,
 									numero);
 							cliente.ruta = ruta;
 							cliente.start();
+						}else {
+							clienteFicherosFuncionando = false;
 						}
 					}
 				});
 			}
-
 		}
-
+		if (clienteFicherosFuncionando) {
+			Ventana.mensajeTray("Espere a que se reciban los ficheros compartidos", MessageType.INFO);
+		}
 	}
 
 	/**
@@ -326,6 +427,10 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 
 	public long getVentanaActiva() {
 		return OS.GetForegroundWindow();
+	}
+
+	public Clip getClip() {
+		return clip;
 	}
 
 	/**
@@ -338,15 +443,15 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 	public void setVentanaActiva(long ventana) {
 
 		long ventanaActual = getVentanaActiva();
-		int ventanaNumeroHilo = OS.GetWindowThreadProcessId(ventana, null);
-		int otraVentanaNumeroHilo = OS.GetWindowThreadProcessId(ventanaActual, null);
+		int ventanaNumeroHilo = OS.GetWindowThreadProcessId((int) ventana, null);
+		int otraVentanaNumeroHilo = OS.GetWindowThreadProcessId((int) ventanaActual, null);
 		OS.AttachThreadInput(otraVentanaNumeroHilo, ventanaNumeroHilo, true);
-		OS.SetForegroundWindow(ventana);
-		OS.BringWindowToTop(ventana);
-		OS.UpdateWindow(ventana);
-		OS.SetActiveWindow(ventana);
-		if (OS.IsIconic(ventana)) {
-			OS.ShowWindow(ventana, OS.SW_SHOWMAXIMIZED);
+		OS.SetForegroundWindow((int) ventana);
+		OS.BringWindowToTop((int) ventana);
+		OS.UpdateWindow((int) ventana);
+		OS.SetActiveWindow((int) ventana);
+		if (OS.IsIconic((int) ventana)) {
+			OS.ShowWindow((int) ventana, OS.SW_SHOWMAXIMIZED);
 		}
 
 	}

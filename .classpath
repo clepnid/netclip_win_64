@@ -4,5 +4,25 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="src/librerias/jnativehook-2.1.0.jar"/>
 	<classpathentry kind="lib" path="src/librerias/org.eclipse.swt.win32.win32.x86_64-4.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3-javadoc.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3-sources.jar"/>
+	<classpathentry kind="lib" path="src/librerias/slf4j-api-1.7.33.jar"/>
+	<classpathentry kind="lib" path="src/librerias/hawtio-app-2.14.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/javax.servlet-api-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-http-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-server-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-servlet-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-util-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-util-ajax-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-webapp-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/core-3.3.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/javase-3.3.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-beans-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-core-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-jcl-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-web-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/tablecombo-1.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

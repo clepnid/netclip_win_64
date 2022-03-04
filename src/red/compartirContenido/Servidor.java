@@ -3,8 +3,7 @@ package red.compartirContenido;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
-
-import red.broadcast.BroadcastingIpControl;
+import red.multicast.MulticastControl;
 import ventana.Ventana;
 
 /**
@@ -19,21 +18,21 @@ import ventana.Ventana;
 public class Servidor extends Thread {
 
 	Ventana ventana;
-	BroadcastingIpControl controlBroadcasting;
+	MulticastControl multicastControl;
 	public ServerSocket servidor = null;
 
 	/**
 	 * Inicia las variables
 	 * 
-	 * @param ventana             {@link Ventana}
-	 * @param controlBroadcasting {@link controlBroadcasting} para detener la
-	 *                            ejecucion del hilo en caso de que el hilo
-	 *                            BroadcastingIpControl finalice.
+	 * @param ventana          {@link Ventana}
+	 * @param multicastControl {@link controlBroadcasting} para detener la ejecucion
+	 *                         del hilo en caso de que el hilo BroadcastingIpControl
+	 *                         finalice.
 	 */
 
-	public Servidor(Ventana ventana, BroadcastingIpControl controlBroadcasting) {
+	public Servidor(Ventana ventana, MulticastControl multicastControl) {
 		this.ventana = ventana;
-		this.controlBroadcasting = controlBroadcasting;
+		this.multicastControl = multicastControl;
 	}
 
 	/**
@@ -43,12 +42,6 @@ public class Servidor extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
 
 		boolean reponer = false;
 		int cont = 1, num = 3;
@@ -62,17 +55,14 @@ public class Servidor extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		while (cont <= num && controlBroadcasting.seguir) {
-			System.out.print("");
+		while (cont <= num && multicastControl.seguir) {
 			// cuando el equipo es servidor
-			if (controlBroadcasting.soyServidor && !controlBroadcasting.serServidor
-					&& !controlBroadcasting.noSerServidor && !(ventana.contenido == null)) {
+			if (multicastControl.soyServidor && !(ventana.contenido == null)) {
 				operaciones.add(new OperacionServidor(servidor, this));
 				operaciones.get(operaciones.size() - 1).start();
 				cont++;
 			}
-			while (controlBroadcasting.seguir && controlBroadcasting.soyServidor && !controlBroadcasting.serServidor
-					&& !controlBroadcasting.noSerServidor && !(ventana.contenido == null)) {
+			while (multicastControl.seguir && multicastControl.soyServidor && !(ventana.contenido == null)) {
 				if (reponer) {
 					operaciones.add(new OperacionServidor(servidor, this));
 					operaciones.get(operaciones.size() - 1).start();
@@ -85,7 +75,7 @@ public class Servidor extends Thread {
 					}
 				}
 				try {
-					Thread.sleep(100);
+					Servidor.sleep(100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -93,7 +83,14 @@ public class Servidor extends Thread {
 			}
 			cont = 1;
 			try {
-				Thread.sleep(100);
+				Servidor.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			try {
+				Servidor.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

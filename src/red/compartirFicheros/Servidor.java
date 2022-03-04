@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-
 import portapapeles.Contenido.Tipo;
-import red.broadcast.BroadcastingIpControl;
+import red.multicast.MulticastControl;
 import ventana.Ventana;
 
 /**
@@ -21,7 +20,7 @@ import ventana.Ventana;
 public class Servidor extends Thread {
 
 	Ventana ventana;
-	BroadcastingIpControl controlBroadcasting;
+	MulticastControl multicastControl;
 	public ServerSocket servidor = null;
 
 	/**
@@ -33,9 +32,9 @@ public class Servidor extends Thread {
 	 *                            BroadcastingIpControl finalice.
 	 */
 
-	public Servidor(Ventana ventana, BroadcastingIpControl controlBroadcasting) {
+	public Servidor(Ventana ventana, MulticastControl controlBroadcasting) {
 		this.ventana = ventana;
-		this.controlBroadcasting = controlBroadcasting;
+		this.multicastControl = controlBroadcasting;
 	}
 
 	/**
@@ -45,12 +44,6 @@ public class Servidor extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
 
 		boolean reponer = false;
 		int cont = 1, num = 3;
@@ -61,47 +54,50 @@ public class Servidor extends Thread {
 		// Creamos el socket del servidor
 		try {
 			servidor = new ServerSocket(PUERTO);
+			servidor.setSoTimeout(1000);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		while (cont <= num && controlBroadcasting.seguir) {
-			System.out.print("");
-			if (controlBroadcasting.soyServidor && !controlBroadcasting.serServidor
-					&& !controlBroadcasting.noSerServidor && !(ventana.contenido == null)
+		while (cont <= num && multicastControl.seguir) {
+			if (multicastControl.soyServidor && !(ventana.contenido == null)
 					&& ventana.contenido.tipo == Tipo.Ficheros) {
+				Boolean noConectado = false;
+				Socket sc = null;
 				try {
-					Socket sc = servidor.accept();
+					sc = servidor.accept();
+				} catch (IOException e) {
+					noConectado = true;
+				}
+				if (!noConectado) {
 					operaciones.add(new OperacionServidor(sc, ventana));
 					operaciones.get(operaciones.size() - 1).start();
 					cont++;
-				} catch (IOException e) {
-					;
 				}
 			}
-			while (controlBroadcasting.seguir && controlBroadcasting.soyServidor && !controlBroadcasting.serServidor
-					&& !controlBroadcasting.noSerServidor && !(ventana.contenido == null)
-					&& ventana.contenido.tipo == Tipo.Ficheros) {
+			while (cont >= num && multicastControl.seguir && multicastControl.soyServidor
+					&& !(ventana.contenido == null) && ventana.contenido.tipo == Tipo.Ficheros) {
 				if (reponer) {
-					System.out.println("reponer");
-					Socket sc;
+					Boolean noConectado = false;
+					Socket sc = null;
 					try {
 						sc = servidor.accept();
+					} catch (IOException e) {
+						noConectado = true;
+					}
+					if (!noConectado) {
 						operaciones.add(new OperacionServidor(sc, ventana));
 						operaciones.get(operaciones.size() - 1).start();
-					} catch (IOException e) {
-						;
 					}
 					reponer = false;
 				}
 				for (int i = 0; i < operaciones.size(); i++) {
 					if (!operaciones.get(i).conectado) {
 						reponer = true;
-						System.out.println("reponeeeee");
 						operaciones.remove(i);
 					}
 				}
 				try {
-					Thread.sleep(100);
+					Servidor.sleep(100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -109,7 +105,7 @@ public class Servidor extends Thread {
 			}
 			cont = 1;
 			try {
-				Thread.sleep(100);
+				Servidor.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -120,8 +116,14 @@ public class Servidor extends Thread {
 		try {
 			if (servidor != null) {
 				if (!servidor.isClosed()) {
-					System.out.println("comooooooo.........");
 					servidor.close();
+				}
+			}
+			for (int i = 0; i < operaciones.size(); i++) {
+				if (operaciones.get(i).conectado) {
+					reponer = true;
+					operaciones.get(i).close();
+					operaciones.remove(i);
 				}
 			}
 		} catch (IOException e) {

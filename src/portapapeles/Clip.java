@@ -2,10 +2,11 @@ package portapapeles;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 
@@ -20,12 +21,15 @@ import java.util.List;
  *      > Funcionalidad del portapapeles de Java. </a>
  */
 
-public class Clip {
-	DataFlavor dataFlavorStringJava;
-	DataFlavor dataFlavorBitmapJava;
-	DataFlavor dataFlavorFileJava;
-	Clipboard clipboard;
+public class Clip implements ClipboardOwner {
+	static DataFlavor dataFlavorStringJava;
+	static DataFlavor dataFlavorHtmlJava;
+	static DataFlavor dataFlavorFileJava;
+	public Clipboard clipboard;
 	public String tipoContenido;
+	private FlavorListener flavorListener;
+	public Boolean pulsadoTeclas, recogido, copiadoDelSistema;
+	public Object contenidoRecogido;
 
 	/**
 	 * Constructor, define las variables:
@@ -42,11 +46,14 @@ public class Clip {
 	 */
 
 	public Clip() {
-		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		recogido = false;
+		copiadoDelSistema = false;
+		pulsadoTeclas = false;
+		clipboard = null;
 		tipoContenido = "";
 		try {
 			dataFlavorStringJava = new DataFlavor("application/x-java-serialized-object; class=java.lang.String");
-			dataFlavorBitmapJava = new DataFlavor("image/x-java-image; class=java.awt.Image");
+			dataFlavorHtmlJava = DataFlavor.allHtmlFlavor;
 			dataFlavorFileJava = new DataFlavor("application/x-java-file-list; class=java.util.List");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -55,44 +62,293 @@ public class Clip {
 
 	}
 
-	/**
-	 * Obtener un objeto texto: {@link String}, imagen: {@link BufferedImage} o
-	 * lista de ficheros: {@link List} del portapapeles del sistema.
-	 * 
-	 * @return Un objeto del portapapeles texto, imagen, lista de ficheros o si no
-	 *         contiene ninguno: <code>null</code>.
-	 * 
-	 */
+	public void resetearClipboard() {
+		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.removeFlavorListener(this.flavorListener);
+		clipboard.addFlavorListener(this.flavorListener);
+	}
 
-	public Object getContenidoEspecifico() {
-		Transferable t = clipboard.getContents(null);
-		try {
-			if (t.isDataFlavorSupported(dataFlavorStringJava)) {
-				String texto;
-				texto = (String) t.getTransferData(dataFlavorStringJava);
-				return texto;
+	public Clipboard resetearClipboard(Clipboard c) {
+		c = Toolkit.getDefaultToolkit().getSystemClipboard();
+		c.removeFlavorListener(this.flavorListener);
+		c.addFlavorListener(this.flavorListener);
+		return c;
+	}
 
+	public static Clipboard resetearClipboard(Clipboard c, FlavorListener flavorListenerAux) {
+		c = Toolkit.getDefaultToolkit().getSystemClipboard();
+		c.removeFlavorListener(flavorListenerAux);
+		c.addFlavorListener(flavorListenerAux);
+		return c;
+	}
+
+	public void proccessClipboard(Clipboard c) {
+		if (pulsadoTeclas) {
+			String s = contenidoTipoPortapapeles();
+			if (s != null) {
+				if (s.equals("html")) {
+					Boolean copiado = false;
+					while (!copiado) {
+						c = resetearClipboard(c);
+						try {
+							Object objeto = getContenidoClipboard();
+							if (objeto != null) {
+								Transferable transferible = (Transferable) objeto;
+								s = (String) ((transferible).getTransferData(dataFlavorHtmlJava));
+							}
+							copiado = true;
+						} catch (UnsupportedFlavorException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (java.lang.IllegalStateException e1) {
+							copiado = false;
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						if (!copiado) {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
+						} else {
+							if (s != null) {
+								contenidoRecogido = s;
+								tipoContenido = "html";
+							} else {
+								contenidoRecogido = s;
+								tipoContenido = "";
+							}
+						}
+
+					}
+				} else if (s.equals("texto")) {
+					Boolean copiado = false;
+					while (!copiado) {
+						c = resetearClipboard(c);
+						try {
+							Object objeto = getContenidoClipboard();
+							if (objeto != null) {
+								Transferable transferible = (Transferable) objeto;
+								s = (String) (transferible).getTransferData(dataFlavorStringJava);
+							}
+							copiado = true;
+						} catch (UnsupportedFlavorException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (java.lang.IllegalStateException e1) {
+							copiado = false;
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						if (!copiado) {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
+						} else {
+							if (s != null) {
+								contenidoRecogido = s;
+								tipoContenido = "texto";
+							} else {
+								contenidoRecogido = s;
+								tipoContenido = "";
+							}
+						}
+
+					}
+
+				} else if (s.equals("ficheros")) {
+					Boolean copiado = false;
+					List<?> lista = null;
+					while (!copiado) {
+						c = resetearClipboard(c);
+						try {
+							Object objeto = getContenidoClipboard();
+							if (objeto != null) {
+								Transferable transferible = (Transferable) objeto;
+								lista = (List<?>) transferible.getTransferData(dataFlavorFileJava);
+							}
+							copiado = true;
+						} catch (UnsupportedFlavorException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (java.lang.IllegalStateException e1) {
+							copiado = false;
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						if (!copiado) {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
+						} else {
+							if (lista != null) {
+								contenidoRecogido = lista;
+								tipoContenido = "ficheros";
+							} else {
+								contenidoRecogido = lista;
+								tipoContenido = "";
+							}
+						}
+					}
+				}
 			}
-			if (t.isDataFlavorSupported(dataFlavorBitmapJava)) {
-				BufferedImage imagen;
-				imagen = (BufferedImage) t.getTransferData(dataFlavorBitmapJava);
-				return imagen;
+		}
 
+	}
+
+	public Object proccessClipboardBackup(Clipboard c) {
+		String s = contenidoTipoPortapapeles();
+		if (s != null) {
+			if (s.equals("html")) {
+				Boolean copiado = false;
+				while (!copiado) {
+					c = resetearClipboard(c);
+					try {
+						Object objeto = getContenidoClipboard();
+						if (objeto != null) {
+							Transferable transferible = (Transferable) objeto;
+							s = (String) (transferible).getTransferData(dataFlavorHtmlJava);
+						}
+						copiado = true;
+					} catch (UnsupportedFlavorException e1) {
+						// TODO Auto-generated catch block
+						copiado = true;
+					} catch (java.lang.IllegalStateException e1) {
+						copiado = false;
+					} catch (IOException e) {
+						s = null;
+						copiado = true;
+					}
+					if (!copiado) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					} else {
+						if (s != null) {
+							contenidoRecogido = s;
+						} else {
+							tipoContenido = "";
+						}
+					}
+
+				}
+			} else if (s.equals("texto")) {
+				Boolean copiado = false;
+				String texto = null;
+				while (!copiado) {
+					c = resetearClipboard(c);
+					try {
+						Object objeto = getContenidoClipboard();
+						if (objeto != null) {
+							Transferable transferible = (Transferable) objeto;
+							texto = (String) (transferible).getTransferData(dataFlavorStringJava);
+						}
+						copiado = true;
+					} catch (UnsupportedFlavorException e1) {
+						// TODO Auto-generated catch block
+						copiado = true;
+						e1.printStackTrace();
+					} catch (java.lang.IllegalStateException e1) {
+						copiado = false;
+					} catch (IOException e) {
+						texto = null;
+						copiado = true;
+					}
+					if (!copiado) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					} else {
+						if (texto != null) {
+							contenidoRecogido = texto;
+						} else {
+							tipoContenido = "";
+						}
+					}
+
+				}
+			} else if (s.equals("ficheros")) {
+				Boolean copiado = false;
+				List<?> lista = null;
+				while (!copiado) {
+					c = resetearClipboard(c);
+					try {
+						Object objeto = getContenidoClipboard();
+						if (objeto != null) {
+							Transferable transferible = (Transferable) objeto;
+							lista = (List<?>) transferible.getTransferData(dataFlavorFileJava);
+						}
+						copiado = true;
+					} catch (UnsupportedFlavorException e1) {
+						// TODO Auto-generated catch block
+						copiado = true;
+						e1.printStackTrace();
+					} catch (java.lang.IllegalStateException e1) {
+						copiado = true;
+					} catch (IOException e) {
+						lista = null;
+						copiado = true;
+					}
+					if (!copiado) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					} else {
+						if (lista != null) {
+							contenidoRecogido = lista;
+						} else {
+							tipoContenido = "";
+						}
+					}
+
+				}
 			}
-			if (t.isDataFlavorSupported(dataFlavorFileJava)) {
-				List<?> lista;
-				lista = (List<?>) t.getTransferData(dataFlavorFileJava);
-				return lista;
-
-			}
-
-		} catch (UnsupportedFlavorException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
 		return null;
+	}
 
+	public Boolean introducido(String string) {
+		String stringAux = null;
+		Object objeto = getContenidoClipboard();
+		if (objeto != null) {
+			Transferable transferible = (Transferable) objeto;
+			try {
+				stringAux = (String) (transferible).getTransferData(dataFlavorStringJava);
+			} catch (UnsupportedFlavorException | IOException e) {
+				// TODO Auto-generated catch block
+				return false;
+			}
+		} else {
+			return false;
+		}
+		if (stringAux.equals(string)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -102,10 +358,12 @@ public class Clip {
 	 */
 
 	public void setContenidoClipboard(Transferable objeto) {
-		try {
-			clipboard.setContents(objeto, null);
-		} catch (Exception e) {
-			;
+		if (objeto != null) {
+			try {
+				clipboard.setContents(objeto, null);
+			} catch (Exception e) {
+				System.out.println(e.getStackTrace());
+			}
 		}
 	}
 
@@ -116,7 +374,10 @@ public class Clip {
 	 */
 
 	public void setContenidoClipboard(DatoSeleccion objeto) {
-		clipboard.setContents(objeto, objeto);
+		if (objeto != null) {
+			clipboard.setContents(objeto, objeto);
+
+		}
 	}
 
 	/**
@@ -127,92 +388,61 @@ public class Clip {
 	 *         con toda la información que contiene el portapapeles del sistema.
 	 */
 
-	public Object getContenidoClipboard() {
-		return clipboard.getContents(null);
+	public Transferable getContenidoClipboard() {
+		Boolean obtenido = false;
+		Transferable objeto = null;
+		while (!obtenido) {
+			try {
+				objeto = clipboard.getContents(null);
+				obtenido = true;
+			} catch (java.lang.IllegalStateException e) {
+				resetearClipboard();
+			}
+		}
+		return objeto;
 	}
 
-	/**
-	 * Segun el portapapeles del sistema contenga texto: {@link String}, imagen:
-	 * {@link BufferedImage} o lista de ficheros: {@link List}, la variable
-	 * tipoContenido contendra diferente {@link String} <code>"texto"</code>,
-	 * <code>"imagen"</code>, <code>"ficheros"</code>,
-	 * 
-	 */
-
-	private void tipoDeContenidoPortapapeles() {
-		Transferable t = clipboard.getContents(null);
-		if (t.isDataFlavorSupported(dataFlavorStringJava)) {
-			tipoContenido = "texto";
-
-		} else if (t.isDataFlavorSupported(dataFlavorBitmapJava)) {
-			tipoContenido = "imagen";
-
-		} else if (t.isDataFlavorSupported(dataFlavorFileJava)) {
-			tipoContenido = "ficheros";
-
-		} else {
-			tipoContenido = "";
+	public static Transferable getContenidoClipboard(Clipboard c, FlavorListener flavorListener)
+			throws java.io.IOException {
+		Boolean obtenido = false;
+		Transferable objeto = null;
+		while (!obtenido) {
+			try {
+				objeto = c.getContents(null);
+				obtenido = true;
+			} catch (java.lang.IllegalStateException e) {
+				c = resetearClipboard(c, flavorListener);
+			}
 		}
+		return objeto;
 	}
 
-	/**
-	 * Obtener texto {@link String} del portapapeles del sistema.
-	 * 
-	 * @return texto del portapapeles o si no contiene texto: <code>null</code>.
-	 * @throws UnsupportedFlavorException el {@link DataFlavor} no es válido.
-	 * @throws IOException no se puede obtener contenido del portapapeles.
-	 */
-
-	public String getString() throws UnsupportedFlavorException, IOException {
-		tipoDeContenidoPortapapeles();
-		if (tipoContenido.equals("texto")) {
-			Transferable t = clipboard.getContents(null);
-			String texto = (String) t.getTransferData(dataFlavorStringJava);
-			return texto;
-		} else {
-			return null;
+	private String contenidoTipoPortapapeles() {
+		Transferable t = (Transferable) getContenidoClipboard();
+		if (t != null) {
+			if (t.isDataFlavorSupported(dataFlavorFileJava)) {
+				return "ficheros";
+			} else if (t.isDataFlavorSupported(dataFlavorHtmlJava)) {
+				return "html";
+			} else if (t.isDataFlavorSupported(dataFlavorStringJava)) {
+				return "texto";
+			}
 		}
+		return null;
 	}
 
-	/**
-	 * Obtener imagen {@link BufferedImage} del portapapeles del sistema.
-	 * 
-	 * @return imagen del portapapeles o si no contiene imagen: <code>null</code>.
-	 * @throws UnsupportedFlavorException el {@link DataFlavor} no es válido.
-	 * @throws IOException no se puede obtener contenido del portapapeles.
-	 */
-
-	public BufferedImage getImagen() throws UnsupportedFlavorException, IOException {
-		tipoDeContenidoPortapapeles();
-		if (tipoContenido.equals("imagen")) {
-			Transferable t = clipboard.getContents(null);
-			BufferedImage imagen;
-			imagen = (BufferedImage) t.getTransferData(dataFlavorBitmapJava);
-			return imagen;
-		} else {
-			return null;
-		}
+	@Override
+	public void lostOwnership(Clipboard clipboard, Transferable contents) {
+		// TODO Auto-generated method stub
 
 	}
 
-	/**
-	 * Obtener lista de ficheros {@link List} del portapapeles del sistema.
-	 * 
-	 * @return lista de ficheros del portapapeles o si no contiene ninguna lista de
-	 *         ficheros: <code>null</code>.
-	 * @throws UnsupportedFlavorException el {@link DataFlavor} no es válido.
-	 * @throws IOException no se puede obtener contenido del portapapeles.
-	 */
+	public FlavorListener getFlavorListener() {
+		return flavorListener;
+	}
 
-	public List<?> getListaFicheros() throws UnsupportedFlavorException, IOException {
-		tipoDeContenidoPortapapeles();
-		if (tipoContenido.equals("ficheros")) {
-			Transferable t = clipboard.getContents(null);
-			List<?> lista;
-			lista = (List<?>) t.getTransferData(dataFlavorFileJava);
-			return lista;
-		} else {
-			return null;
-		}
+	public void setFlavorListener(FlavorListener flavorListener) {
+		clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.addFlavorListener(flavorListener);
 	}
 }

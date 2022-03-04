@@ -18,6 +18,7 @@ public class PanelContenido extends Composite {
 
 	public GridData gd_panObjeto;
 	public Ventana ventana;
+	private String nombre;
 
 	/**
 	 * Constructor del panel con la barra de progreso.
@@ -47,6 +48,14 @@ public class PanelContenido extends Composite {
 		gc.drawImage(image, 0, 0);
 		gc.dispose();
 		return image;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
 	}
 
 }

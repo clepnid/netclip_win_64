@@ -1,18 +1,21 @@
 package red.compartirFicheros;
 
-import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import red.broadcast.BroadcastingIp;
-import red.broadcast.BroadcastingIpControl;
+
+import historial.Historial;
+import historial.ListaHistorial;
+import red.Serializar_funciones;
+import red.multicast.MulticastControl;
+import teclado.EventoTeclasGlobal;
 import ventana.Ventana;
 
 /**
@@ -30,42 +33,102 @@ public class Cliente extends Thread {
 	public static boolean conectado = false;
 	public static Socket sc;
 	public boolean copiarFicheros = false;
+	private DataInputStream din;
+	private DataOutputStream dout;
+	RandomAccessFile rw;
+	Boolean seguir;
 	public String ruta;
-	public String host = "";
 	Ventana ventana;
 	DataOutputStream out = null;
-	BroadcastingIpControl controlBroadcasting;
+	long tamanyo, contador, controladorTamanyo, anteriorTamanyo;
+	MulticastControl multicastControl;
 	public String one = "no";
 	public int numero = 0;
 
 	/**
 	 * Inicia las variables
 	 * 
-	 * @param ventana             {@link Ventana} para manejar {@link ventana.BarraProgreso}
-	 * @param controlBroadcasting {@link BroadcastingIpControl} del que se obtiene
+	 * @param ventana             {@link Ventana} para manejar
+	 *                            {@link ventana.BarraProgreso}
+	 * @param controlBroadcasting {@link MulticastCambioServidor} del que se obtiene
 	 *                            la direccion servidor.
 	 */
 
-	public Cliente(Ventana ventana, BroadcastingIpControl controlBroadcasting) {
+	public Cliente(Ventana ventana, MulticastControl controlBroadcasting) {
 		this.ventana = ventana;
-		this.controlBroadcasting = controlBroadcasting;
+		tamanyo = (long) 0;
+		contador = (long) 0;
+		controladorTamanyo = (long) 0;
+		anteriorTamanyo = (long) 0;
+		this.multicastControl = controlBroadcasting;
 	}
 
 	/**
 	 * Inicia las variables
 	 * 
-	 * @param ventana             {@link Ventana} para manejar {@link ventana.BarraProgreso}
-	 * @param controlBroadcasting {@link BroadcastingIpControl} del que se obtiene
+	 * @param ventana             {@link Ventana} para manejar
+	 *                            {@link ventana.BarraProgreso}
+	 * @param controlBroadcasting {@link MulticastCambioServidor} del que se obtiene
 	 *                            la direccion servidor.
-	 * @param numero              posicion del {@link portapapeles.Contenido} de tipo fichero a
-	 *                            obtener unicamente.
+	 * @param numero              posicion del {@link portapapeles.Contenido} de
+	 *                            tipo fichero a obtener unicamente.
 	 */
 
-	public Cliente(Ventana ventana, BroadcastingIpControl controlBroadcasting, int numero) {
+	public Cliente(Ventana ventana, MulticastControl controlBroadcasting, int numero) {
 		one = "si";
 		this.numero = numero;
+		tamanyo = (long) 0;
+		contador = (long) 0;
+		controladorTamanyo = (long) 0;
+		anteriorTamanyo = (long) 0;
 		this.ventana = ventana;
-		this.controlBroadcasting = controlBroadcasting;
+		this.multicastControl = controlBroadcasting;
+	}
+
+	private byte[] ReadStream() {
+		byte[] data_buff = null;
+		try {
+			int b = 0;
+			String buff_length = "";
+			while ((b = din.read()) != 4) {
+				buff_length += (char) b;
+			}
+			int data_length = Integer.parseInt(buff_length);
+			data_buff = new byte[Integer.parseInt(buff_length)];
+			int byte_read = 0;
+			int byte_offset = 0;
+			while (byte_offset < data_length) {
+				byte_read = din.read(data_buff, byte_offset, data_length - byte_offset);
+				byte_offset += byte_read;
+			}
+		} catch (IOException ex) {
+			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return data_buff;
+	}
+
+	private byte[] CreateDataPacket(byte[] cmd, byte[] data) {
+		byte[] packet = null;
+		try {
+			byte[] initialize = new byte[1];
+			initialize[0] = 2;
+			byte[] separator = new byte[1];
+			separator[0] = 4;
+			byte[] data_length = String.valueOf(data.length).getBytes("UTF8");
+			packet = new byte[initialize.length + cmd.length + separator.length + data_length.length + data.length];
+
+			System.arraycopy(initialize, 0, packet, 0, initialize.length);
+			System.arraycopy(cmd, 0, packet, initialize.length, cmd.length);
+			System.arraycopy(data_length, 0, packet, initialize.length + cmd.length, data_length.length);
+			System.arraycopy(separator, 0, packet, initialize.length + cmd.length + data_length.length,
+					separator.length);
+			System.arraycopy(data, 0, packet, initialize.length + cmd.length + data_length.length + separator.length,
+					data.length);
+
+		} catch (UnsupportedEncodingException ex) {
+			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return packet;
 	}
 
 	/**
@@ -76,9 +139,7 @@ public class Cliente extends Thread {
 	 * @throws IOException cuando se interrumpe el traspaso de archivos.
 	 */
 
-	public void readZip(InputStream socketIs) throws IOException {
-		ZipInputStream zips = new ZipInputStream(socketIs);
-		ZipEntry zipEntry = null;
+	public void readZip() throws IOException {
 
 		out = new DataOutputStream(sc.getOutputStream());
 		out.writeUTF(one);
@@ -86,45 +147,118 @@ public class Cliente extends Thread {
 		if (one.equals("si")) {
 			out.writeInt(numero);
 		}
-		while (null != (zipEntry = zips.getNextEntry())) {
-			String fileName = zipEntry.getName();
-			File outFile = new File(ruta + "/" + fileName.replace("\\", "/"));
+		int porcentaje = 0;
+		String serial_servidor = null;
+		String ruta_fichero_servidor = null;
+		String nombre_fichero = null;
+		String ruta_fichero_cliente = null;
+		while (seguir) {
+			long current_file_pointer = 0;
+			byte[] initilize = new byte[1];
+			boolean loop_break = false;
+			while (!loop_break) {
+				try {
+					din.read(initilize, 0, initilize.length);
+					if (initilize[0] == 2) {
+						byte[] cmd_buff = new byte[3];
+						din.read(cmd_buff, 0, cmd_buff.length);
+						byte[] recv_data = ReadStream();
+						switch (Integer.parseInt(new String(cmd_buff))) {
+						case 121:
+							serial_servidor = new String(recv_data);
+							break;
+						case 122:
+							ruta_fichero_servidor = new String(recv_data);
+							break;
+						case 123:
+							tamanyo = Serializar_funciones.bytesToLong(recv_data);
+							break;
+						case 124:
+							String fileName = new String(recv_data);
+							ruta_fichero_cliente = ruta + File.separator + fileName.replace("\\", "/");
+							File outFile = new File(ruta_fichero_cliente);
+							nombre_fichero = outFile.getName();
+							File parentFolder = outFile.getParentFile();
+							if (!parentFolder.exists()) {
+								parentFolder.mkdirs();
+							}
+							if (!ventana.panBarraProgreso.nombre.contentEquals(outFile.getName())) {
+								ventana.panBarraProgreso.setNombre(outFile.getName());
+							}
+							rw = new RandomAccessFile(ruta + File.separator + fileName, "rw");
+							dout.write(CreateDataPacket("125".getBytes("UTF8"),
+									String.valueOf(current_file_pointer).getBytes("UTF8")));
+							dout.flush();
+							break;
+						case 126:
+							rw.seek(current_file_pointer);
+							rw.write(recv_data);
+							current_file_pointer = rw.getFilePointer();
 
-			if (zipEntry.isDirectory()) {
-				File zipEntryFolder = new File(zipEntry.getName());
-				if (zipEntryFolder.exists() == false) {
-					outFile.mkdirs();
+							if (contador > rw.getFilePointer()) {
+								controladorTamanyo += anteriorTamanyo;
+							}
+							if (anteriorTamanyo != rw.length()) {
+								anteriorTamanyo = rw.length();
+							}
+							
+							contador = rw.getFilePointer();
+							
+							porcentaje = (int) Math.round((((double) (contador+controladorTamanyo)) / ((double) tamanyo)) * 100);
+
+							if (ventana.panBarraProgreso.porcentaje != porcentaje) {
+								ventana.panBarraProgreso.setPorcentaje(porcentaje);
+							}
+
+							dout.write(CreateDataPacket("125".getBytes("UTF8"),
+									String.valueOf(current_file_pointer).getBytes("UTF8")));
+							dout.flush();
+							break;
+						case 127:
+							if ("Close".equals(new String(recv_data))) {
+								loop_break = true;
+							}
+							break;
+						case 128:
+							if ("Close".equals(new String(recv_data))) {
+								loop_break = true;
+								seguir = false;
+							}
+							break;
+						case 129:
+							if ("Close".equals(new String(recv_data))) {
+								ListaHistorial.anyadirHistoria(new Historial(serial_servidor, nombre_fichero,
+										ruta_fichero_servidor, ruta_fichero_cliente, Historial.fechaActual()));
+							}
+							break;
+						case 130:
+							String fichero_nombre = new String(recv_data);
+							ruta_fichero_cliente = ruta + File.separator + fichero_nombre.replace("\\", "/");
+							nombre_fichero = new File(ruta_fichero_cliente).getName();
+							System.out.println("Serial SERVIDOR = " + serial_servidor);
+							System.out.println("ruta_fichero_servidor = " + ruta_fichero_servidor);
+							ListaHistorial.anyadirHistoria(new Historial(serial_servidor, nombre_fichero,
+									ruta_fichero_servidor, ruta_fichero_cliente, Historial.fechaActual()));
+							break;
+						}
+					}
+				} catch (java.net.SocketException e) {
+					e.printStackTrace();
+					ventana.panBarraProgreso.setPorcentajeCero();
+					sc.close();
+					rw.close();
+				} catch (IOException ex) {
+					Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+					ventana.panBarraProgreso.setPorcentajeCero();
+					sc.close();
+					rw.close();
 				}
 
-				continue;
-			} else {
-				File parentFolder = outFile.getParentFile();
-				if (parentFolder.exists() == false) {
-					parentFolder.mkdirs();
-				}
 			}
-
-			ventana.panBarraProgreso.setNombre(outFile.getName());
-
-			FileOutputStream fos = new FileOutputStream(outFile);
-			int fileLength = (int) zipEntry.getSize();
-
-			byte[] fileByte = new byte[fileLength];
-			int written = 0;
-			int hola = 0;
-			double proceso = 0;
-			int length;
-
-			while ((length = zips.read(fileByte, 0, fileByte.length)) >= 0) {
-				written += length;
-				proceso = (((double) written / zipEntry.getCompressedSize()));
-				hola = (int) (proceso * 100);
-				ventana.panBarraProgreso.setPorcentaje(hola);
-				fos.write(fileByte, 0, length);
-			}
-			ventana.panBarraProgreso.setPorcentajeCero();
-			fos.close();
 		}
+		ventana.panBarraProgreso.setPorcentajeCero();
+		sc.close();
+		rw.close();
 	}
 
 	/**
@@ -134,39 +268,39 @@ public class Cliente extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
 
 		// Creo el socket para conectarme con el client
 		boolean estaConectado = true;
-		for (BroadcastingIp broadcastingIp : controlBroadcasting.lista_ip_servidor) {
-			estaConectado = true;
-			try {
-				sc = new Socket(broadcastingIp.getIp(), PUERTO);
-			} catch (Exception e) {
-				estaConectado = false;
-			}
-			if (estaConectado) {
-				host = broadcastingIp.getIp();
-				conectado = true;
-				break;
-			}
+		try {
+			sc = new Socket(multicastControl.ip_servidor, PUERTO);
+		} catch (Exception e) {
+			estaConectado = false;
+		}
+		if (estaConectado) {
+			conectado = true;
 		}
 		if (conectado) {
 			copiarFicheros = true;
-			BufferedInputStream bis;
 			try {
-				bis = new BufferedInputStream(sc.getInputStream());
+				din = new DataInputStream(sc.getInputStream());
+				dout = new DataOutputStream(sc.getOutputStream());
+				rw = null;
+				seguir = true;
 				ventana.panBarraProgreso.esconderPanelProgressBar(false);
-				readZip(bis);
+				readZip();
 				ventana.panBarraProgreso.esconderPanelProgressBar(true);
+				conectado = false;
+				EventoTeclasGlobal.clienteFicherosFuncionando = false;
+			} catch (java.net.SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				ventana.panBarraProgreso.esconderPanelProgressBar(true);
+				conectado = false;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				ventana.panBarraProgreso.esconderPanelProgressBar(true);
+				conectado = false;
 			}
 		}
 

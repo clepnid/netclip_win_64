@@ -25,7 +25,7 @@ public class PanelTexto extends PanelContenido {
 
 	private Composite panImagen;
 	private Composite panBoton;
-	private Button btnCopiar;
+	private Button btnCopiar, btnQR;
 	private Composite panAtributos;
 	private Label lblImagen;
 	private Label lblNombre;
@@ -62,7 +62,7 @@ public class PanelTexto extends PanelContenido {
 		lblImagen = new Label(panImagen, SWT.NONE);
 		lblImagen.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblImagen.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 1, 1));
-		lblImagen.setImage(getCheckedImage(display, ".\\\\\\\\src\\\\imagenes\\\\texto.gif"));
+		lblImagen.setImage(getCheckedImage(display, "./src/imagenes/texto.gif"));
 
 		panAtributos = new Composite(this, SWT.NONE);
 		panAtributos.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -70,9 +70,9 @@ public class PanelTexto extends PanelContenido {
 		panAtributos.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		lblNombre = new Label(panAtributos, SWT.NONE);
-		lblNombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_LIST_BACKGROUND));
+		lblNombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblNombre.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
-		lblNombre.setText("Texto: " + " " + texto);
+		lblNombre.setText(Ventana.idioma.getProperty("texto")+": " + " " + texto);
 
 		panBoton = new Composite(this, SWT.NONE);
 		panBoton.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -80,15 +80,32 @@ public class PanelTexto extends PanelContenido {
 		panBoton.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, false, false, 1, 1));
 
 		btnCopiar = new Button(panBoton, SWT.NONE);
-		btnCopiar.setToolTipText("Copiar fichero al portapapeles");
+		btnCopiar.setToolTipText(Ventana.idioma.getProperty("btnContextCopiar"));
+		btnCopiar.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		btnCopiar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
-		btnCopiar.setText("Copiar");
+		btnCopiar.setText(Ventana.idioma.getProperty("copiar"));
 
 		btnCopiar.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
 					ventana.teclas.eventos.copiarContenidoBtn();
+					break;
+				}
+			}
+		});
+
+		btnQR = new Button(panBoton, SWT.NONE);
+		btnQR.setToolTipText(Ventana.idioma.getProperty("btnContextMostrar_qr_html"));
+		btnQR.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		btnQR.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
+		btnQR.setText(Ventana.idioma.getProperty("mostrar_qr"));
+
+		btnQR.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					ventana.crearVentanaQR(ventana.shlSwt, "");
 					break;
 				}
 			}
