@@ -13,6 +13,7 @@
 select the files you want to share:
 (Only for windows)
 ![image](https://user-images.githubusercontent.com/66835340/158058628-d97bf6b9-b45c-40e2-a670-89cd6ed00639.png)
+
 Or Press Ctrl+Shift+1
 
 ![image](https://user-images.githubusercontent.com/66835340/158058782-7a31ae1e-1480-46d2-b3ec-c2e08a797150.png)
