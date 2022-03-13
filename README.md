@@ -36,6 +36,23 @@ It can also be shared to smartphones connected to the same network using qr.
 
 Each file can be downloaded and to interact with them you will have to add the modules related to these files.
 
+How add modules html:
+
+Go to C:\Program Files (x86)\Clepnid\src\html and copy the modulo.
+
+![image](https://user-images.githubusercontent.com/66835340/158062692-0e17b031-023f-483e-b20a-ae524afffb39.png)
+
+With these modules we can add shared file interactions (by default there is only the download button):
+
+![image](https://user-images.githubusercontent.com/66835340/158062851-ec5c16f0-faa1-4979-93f1-6286531797d7.png)
+
+And by introducing, for example, the music player module in the mp3 files, we will add the functionality of playing said file.
+
+![image](https://user-images.githubusercontent.com/66835340/158062975-57c126cb-8ebc-4d83-92dc-345bad0aa43f.png)
+![image](https://user-images.githubusercontent.com/66835340/158063039-226df3c1-4cce-46ca-893b-8499fd26cf43.png)
+
+
+
 ## Settings
 
 ![image](https://user-images.githubusercontent.com/66835340/158058344-03af665c-77f7-40ea-8aad-c9975d0e3eb5.png)
