@@ -7,7 +7,7 @@
 * [Quick Start](#quick-start)
 * [Settings](#settings)
 * [Utilities](#utilities)
-    * [Utilities](#utilities)
+    * [Create internet url](#Create internet url to share it to everyone.)
 * [Add Modules](#add-modules)
 
 ## Quick Start
@@ -46,7 +46,7 @@ The folder path will be where you get the files sent by other computers.
 
 ![image](https://user-images.githubusercontent.com/66835340/158060363-c36aa763-5251-4126-b4e4-f285e505bc1e.png)
 
-Create internet url to share it to everyone.
+## Create internet url to share it to everyone.
 
 You can type the subdomain name to get a defined link.
 
