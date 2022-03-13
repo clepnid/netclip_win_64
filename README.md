@@ -39,11 +39,21 @@ Each file can be downloaded and to interact with them you will have to add the m
 
 The name will be the one shown to be recognized within localhost by the other computers that want to send files.
 
-
+The folder path will be where you get the files sent by other computers.
 
 ## Utilities
 
 ![image](https://user-images.githubusercontent.com/66835340/158060363-c36aa763-5251-4126-b4e4-f285e505bc1e.png)
+
+Create internet url.
+
+You can type the subdomain name to get a defined link.
+
+![image](https://user-images.githubusercontent.com/66835340/158061452-7f11ca9f-d5b1-4164-97d6-0e79ab4f302a.png)
+
+Or don't write any subdomain name, getting a random url.
+
+![image](https://user-images.githubusercontent.com/66835340/158061597-3b3a9c48-3e5a-4b81-9aa8-7ecffc6345f7.png)
 
 
 ## Add Modules
