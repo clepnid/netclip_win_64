@@ -7,6 +7,7 @@
 As "a picture is worth a thousand words" The program will be explained with this methodology.
 
 * [Quick Start](#quick-start)
+    * [Add web modules](#How-add-modules-html)
 * [Settings](#settings)
 * [Utilities](#utilities)
     * [Create internet url](#Create-internet-url-to-share-it-to-everyone)
@@ -36,7 +37,7 @@ It can also be shared to smartphones connected to the same network using qr.
 
 Each file can be downloaded and to interact with them you will have to add the modules related to these files.
 
-How add modules html:
+## How add modules html:
 
 Go to C:\Program Files (x86)\Clepnid\src\html and copy the modulo.
 
