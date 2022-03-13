@@ -7,7 +7,7 @@
 * [Quick Start](#quick-start)
 * [Settings](#settings)
 * [Utilities](#utilities)
-    * [Create internet url](#Create internet url to share it to everyone.)
+    * [Create internet url](#Create-internet-url-to-share-it-to-everyone.)
 * [Add Modules](#add-modules)
 
 ## Quick Start
