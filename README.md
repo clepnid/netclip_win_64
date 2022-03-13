@@ -4,6 +4,8 @@
 
 ## Table of Contents
 
+As "a picture is worth a thousand words" The program will be explained with this methodology.
+
 * [Quick Start](#quick-start)
 * [Settings](#settings)
 * [Utilities](#utilities)
