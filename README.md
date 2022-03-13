@@ -1,4 +1,4 @@
-# [Clepnid - Client-Server Shared Text-File][webpage]
+# [Clepnid - Client-Server Shared File][webpage]
 
 > Clepnid is a tool for everyone, create a site on your Windows, Linux or Mac with utilities to be able to host files and make them accessible from any device, whether on a private network or the internet. The utilities for the files are added modularly, being able to host music player, video player, game emulator...
 
