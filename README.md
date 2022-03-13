@@ -18,13 +18,17 @@ Or Press Ctrl+Shift+1
 
 ![image](https://user-images.githubusercontent.com/66835340/158058782-7a31ae1e-1480-46d2-b3ec-c2e08a797150.png)
 
+These files are now being shared and can be obtained by computers with the same network that have Clepnid open or can interact with them through the computer's url.
+
 ![image](https://user-images.githubusercontent.com/66835340/158058959-ef693845-1638-4d35-83e7-34aa176c3eaa.png)
+
+It can also be shared to smartphones connected to the same network using qr.
 
 ![image](https://user-images.githubusercontent.com/66835340/158059015-f5687592-4fb2-4475-885e-22bd36f3130a.png)
 
 ![Sin título-4](https://user-images.githubusercontent.com/66835340/158059432-1e744e48-ded7-4da2-a17b-81eff0cfbed8.jpg)
 
-
+Each file can be downloaded and to interact with them you will have to add the modules related to these files.
 
 
 ![image](https://user-images.githubusercontent.com/66835340/158058344-03af665c-77f7-40ea-8aad-c9975d0e3eb5.png)
