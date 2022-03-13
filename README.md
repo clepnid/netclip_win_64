@@ -5,13 +5,16 @@
 ## Table of Contents
 
 * [Quick Start](#quick-start)
+* [Settings](#settings)
 * [Utilities](#utilities)
 * [Add Modules](#add-modules)
 
 ## Quick Start
  
 Select the files that you want to share:
+
 (Only for windows)
+
 ![image](https://user-images.githubusercontent.com/66835340/158058628-d97bf6b9-b45c-40e2-a670-89cd6ed00639.png)
 
 Or Press Ctrl+Shift+1
@@ -30,10 +33,18 @@ It can also be shared to smartphones connected to the same network using qr.
 
 Each file can be downloaded and to interact with them you will have to add the modules related to these files.
 
+## Settings
 
 ![image](https://user-images.githubusercontent.com/66835340/158058344-03af665c-77f7-40ea-8aad-c9975d0e3eb5.png)
 
+The name will be the one shown to be recognized within localhost by the other computers that want to send files.
+
+
+
 ## Utilities
+
+![image](https://user-images.githubusercontent.com/66835340/158060363-c36aa763-5251-4126-b4e4-f285e505bc1e.png)
+
 
 ## Add Modules
 
