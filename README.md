@@ -7,6 +7,7 @@
 As "a picture is worth a thousand words" The program will be explained with this methodology.
 
 * [Quick Start](#quick-start)
+    * [Shared files](#Shared-files)
     * [Add web modules](#How-add-modules-html)
 * [Settings](#settings)
 * [Utilities](#utilities)
@@ -14,6 +15,8 @@ As "a picture is worth a thousand words" The program will be explained with this
 * [Add Modules](#add-modules)
 
 ## Quick Start
+
+## Shared files
  
 Select the files that you want to share:
 
