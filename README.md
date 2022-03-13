@@ -10,7 +10,7 @@
 
 ## Quick Start
  
-select the files you want to share:
+Select the files that you want to share:
 (Only for windows)
 ![image](https://user-images.githubusercontent.com/66835340/158058628-d97bf6b9-b45c-40e2-a670-89cd6ed00639.png)
 
@@ -23,6 +23,7 @@ Or Press Ctrl+Shift+1
 ![image](https://user-images.githubusercontent.com/66835340/158059015-f5687592-4fb2-4475-885e-22bd36f3130a.png)
 
 ![Sin título-4](https://user-images.githubusercontent.com/66835340/158059432-1e744e48-ded7-4da2-a17b-81eff0cfbed8.jpg)
+
 
 
 
