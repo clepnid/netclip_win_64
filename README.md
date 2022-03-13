@@ -44,9 +44,11 @@ The folder path will be where you get the files sent by other computers.
 
 ## Utilities
 
+## Create internet url to share it to everyone.
+
 ![image](https://user-images.githubusercontent.com/66835340/158060363-c36aa763-5251-4126-b4e4-f285e505bc1e.png)
 
-## Create internet url to share it to everyone.
+Click on Create internet link.
 
 You can type the subdomain name to get a defined link.
 
