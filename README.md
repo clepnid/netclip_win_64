@@ -9,6 +9,7 @@ As "a picture is worth a thousand words" The program will be explained with this
 * [Quick Start](#quick-start)
     * [Shared files](#Shared-files)
     * [Add web modules](#How-add-modules-html)
+    * [Upload files](#Upload-a-file-using-another-external-device)
 * [Settings](#settings)
 * [Utilities](#utilities)
     * [Create internet url](#Create-internet-url-to-share-it-to-everyone)
@@ -55,6 +56,25 @@ And by introducing, for example, the music player module in the mp3 files, we wi
 ![image](https://user-images.githubusercontent.com/66835340/158062975-57c126cb-8ebc-4d83-92dc-345bad0aa43f.png)
 ![image](https://user-images.githubusercontent.com/66835340/158063039-226df3c1-4cce-46ca-893b-8499fd26cf43.png)
 
+## Upload a file using another external device:
+
+![image](https://user-images.githubusercontent.com/66835340/158063682-31ed6187-df6e-4363-b429-d42dc3cdd772.png)
+
+From the web menu of files within upload files
+
+![image](https://user-images.githubusercontent.com/66835340/158063786-122ea2c8-9192-4058-a176-ad7a2ec6a300.png)
+
+Click on Drag or select your files here and select a file to upload.
+
+![image](https://user-images.githubusercontent.com/66835340/158063813-bc97e0ac-35d9-4b12-a5cb-122caf9b422d.png)
+
+The file will be uploaded to the server.
+
+![image](https://user-images.githubusercontent.com/66835340/158063949-1feeb0ce-7727-4051-8869-f648df6c6e29.png)
+
+And it will be accessed from the web and in this case it can be reproduced with the previously added module.
+
+![image](https://user-images.githubusercontent.com/66835340/158064021-0584f05e-b3dc-457e-b717-489c526b7fff.png)
 
 
 ## Settings
