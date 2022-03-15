@@ -15,10 +15,14 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.springframework.http.MediaType;
+
+import portapapeles.Ficheros;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 import ventana.Configuracion;
+import ventana.Ventana;
 
 public class Http {
 	private static int MAX_READ_SIZE = 1024;
@@ -31,19 +35,11 @@ public class Http {
 
 	private ArrayList<Tipo> tipos = new ArrayList<Tipo>();
 	private final static String RUTAVIDEODEFECTO = "no hay video";
-	private final static String TEXTOPRIMERARUTA = "<!DOCTYPE html>\r\n"
-			+ "<html>\r\n"
-			+ "<head>\r\n"
+	private final static String TEXTOPRIMERARUTA = "<!DOCTYPE html>\r\n" + "<html>\r\n" + "<head>\r\n"
 			+ "	<meta charset=\"utf-8\">\r\n"
 			+ "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n"
-			+ "	<title>Clepnid</title>\r\n"
-			+ "</head>\r\n"
-			+ "<body>\r\n"
-			+ "<h1>CLEPNID</h1>\r\n"
-			+ "\r\n"
-			+ "<p><a href=\"menu\">Entrar a la aplicaci髇</a></p>\r\n"
-			+ "</body>\r\n"
-			+ "</html>";
+			+ "	<title>Clepnid</title>\r\n" + "</head>\r\n" + "<body>\r\n" + "<h1>CLEPNID</h1>\r\n" + "\r\n"
+			+ "<p><a href=\"menu\">Entrar a la aplicaci髇</a></p>\r\n" + "</body>\r\n" + "</html>";
 	private final static String TEXTODEFECTO = "no hay nada que copiar";
 	private final static String TEXTOHTMLDEFECTO = "<!DOCTYPE html>\n" + "<html>\n" + "<head>\n"
 			+ "<meta charset=&nbsp;utf-8&nbsp;>\n"
@@ -61,7 +57,9 @@ public class Http {
 
 		Spark.get("/favicon.ico", (req, res) -> getFavicon(req, res, ".src/imagenes/clipboard.ico"));
 		Spark.get("/pagina.html", (req, res) -> renderHtml(req, res));
-		Spark.get("/", (req, res) -> { return TEXTOPRIMERARUTA;});
+		Spark.get("/", (req, res) -> {
+			return TEXTOPRIMERARUTA;
+		});
 
 		ClepnidJson.iniciar();
 		getCarpetaEstatica("", "./src/html");
@@ -81,25 +79,33 @@ public class Http {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//si la ruta del fichero de inicializacion no es correcta no se podr谩 realizar esta acci贸n
-		//si no se ha cargado la configuracion del menu no se podr谩 realizar esta acci贸n
-		if (config.inicializarRutas != null && config.rutaGuardadoHttp != null && !config.rutaGuardadoHttp.equals("") && Clepnid_WebJson.config!=null) {
+		// si la ruta del fichero de inicializacion no es correcta no se podr谩 realizar
+		// esta acci贸n
+		// si no se ha cargado la configuracion del menu no se podr谩 realizar esta
+		// acci贸n
+		if (config.inicializarRutas != null && config.rutaGuardadoHttp != null && !config.rutaGuardadoHttp.equals("")
+				&& Clepnid_WebJson.config != null) {
 			try {
-				GuardadoRutas guardado = GuardadoRutas.deserializar();
-				guardado.cargar(this);
+				if (config.inicializarRutas) {
+					GuardadoRutas guardado = GuardadoRutas.deserializar();
+					guardado.cargar(this);
+				}
 			} catch (ClassNotFoundException e) {
 				System.out.print("");
 			} catch (IOException e) {
 				System.out.print("");
 			}
 		}
-		if (Clepnid_WebJson.config!=null) {
+		if (Clepnid_WebJson.config != null) {
 			crearUrlIndice(Clepnid_WebJson.config);
 		}
-		
-		
-	}
 
+		Spark.unmap("/modulo_subir_ficheros/index.html");
+
+		Spark.get("/modulo_subir_ficheros/index.html",
+				(req, res) -> renderIndex(req, res, "./src/html/modulo_subir_ficheros/index.html"));
+
+	}
 
 	/**
 	 * Metodo principal para controlar el envio segun el tipo de fichero.
@@ -245,34 +251,34 @@ public class Http {
 				"C:\\\\Users\\\\pavon\\\\Desktop\\\\UNI\\\\MATIII_Prueba1_Antonio_Jesus_Pavon_Correa_1.jpeg"));
 		Spark.get("/index.html", (req, res) -> renderIndex(req, res));
 		Spark.get("/script.js", (req, res) -> renderJavaScript(req, res));
-		Spark.get("/", (req, res) -> {res.raw().sendRedirect("/yourpage"); return 1;});
-	}
-	 
-	 /* Convierte un string a algo que se puede insertar en una url*/
-	public static String encodeURIcomponent(String s)
-	{
-	    StringBuilder o = new StringBuilder();
-	    for (char ch : s.toCharArray()) {
-	        if (isUnsafe(ch)) {
-	            o.append('%');
-	            o.append(toHex(ch / 16));
-	            o.append(toHex(ch % 16));
-	        }
-	        else o.append(ch);
-	    }
-	    return o.toString();
+		Spark.get("/", (req, res) -> {
+			res.raw().sendRedirect("/yourpage");
+			return 1;
+		});
 	}
 
-	private static char toHex(int ch)
-	{
-	    return (char)(ch < 10 ? '0' + ch : 'A' + ch - 10);
+	/* Convierte un string a algo que se puede insertar en una url */
+	public static String encodeURIcomponent(String s) {
+		StringBuilder o = new StringBuilder();
+		for (char ch : s.toCharArray()) {
+			if (isUnsafe(ch)) {
+				o.append('%');
+				o.append(toHex(ch / 16));
+				o.append(toHex(ch % 16));
+			} else
+				o.append(ch);
+		}
+		return o.toString();
 	}
 
-	private static boolean isUnsafe(char ch)
-	{
-	    if (ch > 128 || ch < 0)
-	        return true;
-	    return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
+	private static char toHex(int ch) {
+		return (char) (ch < 10 ? '0' + ch : 'A' + ch - 10);
+	}
+
+	private static boolean isUnsafe(char ch) {
+		if (ch > 128 || ch < 0)
+			return true;
+		return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
 	}
 
 	private static void getCarpetaEstatica(String rutaHttp, String rutaFichero) {
@@ -293,8 +299,29 @@ public class Http {
 		anyadirUrlParcial(nombreArchivo, rutaArchivo, Tipo.Archivo);
 	}
 
+	// si es un archivo de musica debera cargarse como stream
+	public Boolean crearUrlMusicaStream(String nombreArchivo, String rutaArchivo) {
+		if (Ficheros.tipoFichero(nombreArchivo).equals(Ventana.idioma.get("tipo_fichero_audio"))
+				&& MusicPlayerComponent.getRutaModulo() != null) {
+			Spark.get("/clepnid_stream" + MusicPlayerComponent.getRutaModulo() + "/" + nombreArchivo, (req, res) -> {
+				File fichero = new File(rutaArchivo);
+				res.raw().setContentType("audio/mpeg");
+				res.type("audio/mpeg");
+				res.raw().setHeader("Content-Length", String.valueOf(fichero.length()));
+				try {
+					MediaType n = new MediaType("audio", "audio");
+					return MultipartFileMusicSender.writePartialContent(req.raw(), res.raw(), fichero, n);
+				} catch (IOException e) {
+					return res.raw();
+				}
+			});
+			MusicPlayerJson.anyadirMusica(nombreArchivo);
+			return true;
+		}
+		return false;
+	}
+
 	public void crearUrlVideo(String nombreArchivo, String rutaArchivo) {
-		System.out.println("creadoa");
 		Spark.get("/" + nombreArchivo, (req, res) -> getVideoStream(req, res, rutaArchivo));
 		anyadirUrlParcial(nombreArchivo, rutaArchivo, Tipo.Video);
 	}
@@ -317,16 +344,24 @@ public class Http {
 		}
 	}
 
-	public void crearUrlModulo(ConfiguracionJson configuracionJson, String nombreArchivo) {
+	public void crearUrlModulo(ConfiguracionJson configuracionJson, String nombreArchivo, String rutaArchivo) {
 		String nombreArchivoAux = nombreArchivo;
+		Boolean musica = crearUrlMusicaStream(nombreArchivo, rutaArchivo);
 		String ruta = configuracionJson.getRutaHttp() + "/" + nombreArchivo;
 		Spark.get(ruta, (req, res) -> renderIndex(req, res, configuracionJson.getHtml()));
 
-		Spark.after(ruta, (request, response) -> {
-			String body = response.body();
-			response.body(body.replace(configuracionJson.getHtmlReemplazoBody(),
-					"/" + nombreArchivoAux));
-		});
+		if (musica) {
+			Spark.after(ruta, (request, response) -> {
+				String body = response.body();
+				response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), MusicPlayerJson.getJson(nombreArchivo)));
+			});
+		} else {
+			Spark.after(ruta, (request, response) -> {
+				String body = response.body();
+				response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), "/" + nombreArchivoAux));
+			});
+		}
+
 	}
 
 	public void crearUrlIndice(ConfiguracionWebJson configuracionJson) {
@@ -354,7 +389,7 @@ public class Http {
 		response.type("video/mp4");
 		response.raw().setHeader("Content-Length", String.valueOf(file.length()));
 		try {
-			MultipartFileSender.fromPath(path).with(request.raw()).with(response.raw()).serveResource();
+			MultipartFileVideoSender.fromPath(path).with(request.raw()).with(response.raw()).serveResource();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

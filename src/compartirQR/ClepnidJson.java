@@ -10,6 +10,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+//lee el fichero clepnid.json de los modulos y los añade en el arraylist config.
 public class ClepnidJson {
 	
 	public static ArrayList<ConfiguracionJson> config;
@@ -93,9 +94,22 @@ public class ClepnidJson {
         
         
         configJson.setHtml(rutaHtml);
+
+        
+        
         configJson.setRutaImagen((String) webObject.get("rutaImagen"));
         
         configJson.setRutaHttp((String) webObject.get("rutaHttp"));
+        
+        String esGrupal = ((String) webObject.get("Group"));
+        if (esGrupal.equals("si")) {
+			configJson.setGrupo(true);
+			if (configJson.getTitulo().equals("Music Reproductor")) {
+				MusicPlayerComponent.setRutaModulo(configJson.getRutaHttp());
+			}
+		}else {
+			configJson.setGrupo(false);
+		}
         
         config.add(configJson);
     }

@@ -180,7 +180,7 @@ public class MenuBar {
 			}
 		});
 		MenuItem saveItemIni = new MenuItem(fileMenu, SWT.NONE);
-		saveItemIni.setText(Ventana.idioma.getProperty("toolbar_web_cargar_configuracion_inicio"));
+		saveItemIni.setText(Ventana.idioma.getProperty("toolbar_web_guardar_configuracion_inicio"));
 		saveItemIni.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				ventana.display.asyncExec(new Runnable() {

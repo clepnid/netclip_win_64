@@ -6,11 +6,13 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.http.MediaType;
 
 import portapapeles.Ficheros;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
+import ventana.Ventana;
 
 public class HttpCarpetaEstatica {
 	private static String padre = null;
@@ -70,6 +72,23 @@ public class HttpCarpetaEstatica {
 		if (!leerConfiguracionWeb(file)) {
 			Spark.get("/" + padre + "/" + EntryFileName.replace("\\", "/"),
 					(req, res) -> devolverArchivoEstatico(req, res, absolutePath));
+			String tipoFile = Ficheros.tipoFichero(file.getPath());
+			
+			//crear ruta para hacer streaming de audio
+			if (tipoFile.equals(Ventana.idioma.get("tipo_fichero_audio"))) {
+				Spark.get("/" + padre + "/clepnid_stream/" + EntryFileName.replace("\\", "/"), (req, res)->{
+					File fichero = new File(absolutePath);
+					res.raw().setContentType("audio/mpeg");
+					res.type("audio/mpeg");
+					res.raw().setHeader("Content-Length", String.valueOf(fichero.length()));
+					try {
+						MediaType n = new MediaType("audio", "audio");
+						return MultipartFileMusicSender.writePartialContent(req.raw(), res.raw(), fichero, n);
+					} catch (IOException e) {
+						return res.raw();
+					}
+				});
+			}
 		}
 	}
 	
@@ -87,6 +106,7 @@ public class HttpCarpetaEstatica {
 			}
 		}
 	}
+	
 
 	static Object devolverArchivoEstatico(Request req, Response res, String ruta) {
 		File file = new File(ruta);
@@ -109,7 +129,7 @@ public class HttpCarpetaEstatica {
 					return null;
 				}
 			} else {
-				if (tipoFile.equals("documento") || tipoFile.equals("codigo")) {
+				if (tipoFile.equals(Ventana.idioma.get("tipo_fichero_documento")) || tipoFile.equals(Ventana.idioma.get("tipo_fichero_codigo"))) {
 					Path path = Paths.get(ruta);
 					try {
 						return new String(Files.readAllBytes(path), Charset.defaultCharset());
@@ -117,7 +137,7 @@ public class HttpCarpetaEstatica {
 						return null;
 					}
 				} else {
-					if (tipoFile.equals("video")) {
+					if (tipoFile.equals(Ventana.idioma.get("tipo_fichero_tipo_fichero_video"))) {
 						Path path = Paths.get(ruta);
 
 						file = new File(ruta);
@@ -125,33 +145,34 @@ public class HttpCarpetaEstatica {
 						res.type("video/mp4");
 						res.raw().setHeader("Content-Length", String.valueOf(file.length()));
 						try {
-							MultipartFileSender.fromPath(path).with(res.raw()).with(res.raw()).serveResource();
+							MultipartFileVideoSender.fromPath(path).with(res.raw()).with(res.raw()).serveResource();
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						return res.raw();
 					} else {
-						Path path = Paths.get(ruta);
-						file = new File(ruta);
+							Path path = Paths.get(ruta);
+							file = new File(ruta);
 
-						byte[] data = null;
-						try {
-							data = Files.readAllBytes(path);
-						} catch (Exception e1) {
-							Spark.halt(405, "server error");
-						}
+							byte[] data = null;
+							try {
+								data = Files.readAllBytes(path);
+							} catch (Exception e1) {
+								Spark.halt(405, "server error");
+							}
 
-						res.raw().setContentType("application/octet-stream");
-						res.raw().setHeader("Content-Disposition", "attachment; filename=" + file.getName());
-						try {
-							res.raw().getOutputStream().write(data);
-							res.raw().getOutputStream().flush();
-							res.raw().getOutputStream().close();
-						} catch (Exception e) {
-							Spark.halt(405, "server error");
-						}
-						return res.raw();
+							res.raw().setContentType("application/octet-stream");
+							res.raw().setHeader("Content-Disposition", "attachment; filename=" + file.getName());
+							try {
+								res.raw().getOutputStream().write(data);
+								res.raw().getOutputStream().flush();
+								res.raw().getOutputStream().close();
+							} catch (Exception e) {
+								Spark.halt(405, "server error");
+							}
+							return res.raw();
+						
 					}
 				}
 			}

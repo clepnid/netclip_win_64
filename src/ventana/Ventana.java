@@ -181,7 +181,7 @@ public class Ventana {
 				WebJson modulo = new WebJson();
 				if (listaModulos != null) {
 					for (ConfiguracionJson configuracionJson : listaModulos) {
-						http.crearUrlModulo(configuracionJson, nombre);
+						http.crearUrlModulo(configuracionJson, nombre, contenido.listaFicheros.get(i)[4]);
 						// anyadir modulo en website
 						modulo.setTitulo(configuracionJson.getTitulo());
 						modulo.setRandomHexa();
@@ -396,7 +396,9 @@ public class Ventana {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.exit(0);
+		if (!reiniciar) {
+			System.exit(0);
+		}
 	}
 
 	/**
@@ -1096,10 +1098,10 @@ public class Ventana {
 					if (!idioma_items[idiomas.getSelectionIndex()].equals(configAux.idioma)) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!btnRutasInicioCheckButton.getSelection()==config.inicializarRutas) {
+					if (!btnRutasInicioCheckButton.getSelection()==configAux.inicializarRutas) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!btnRecibirEnviosCheckButton.getSelection()==config.recibirEnvios) {
+					if (!btnRecibirEnviosCheckButton.getSelection()==configAux.recibirEnvios) {
 						abrirVentanaReiniciar = true;
 					}
 					config = new Configuracion(text_Nombre.getText(), text_Carpeta.getText(),

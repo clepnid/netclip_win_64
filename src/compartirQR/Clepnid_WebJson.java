@@ -23,6 +23,7 @@ import spark.utils.IOUtils;
 import ventana.Configuracion;
 import ventana.Ventana;
 
+// se usa para leer el json de menuArchivo y darle funcionabilidad al momento de cargarse.
 public class Clepnid_WebJson {
 
 	public static ConfiguracionWebJson config;
@@ -121,7 +122,7 @@ public class Clepnid_WebJson {
 				WebJson modulo = new WebJson();
 				if (listaModulos != null) {
 					for (ConfiguracionJson configuracionJson : listaModulos) {
-						Ventana.http.crearUrlModulo(configuracionJson, nombre);
+						Ventana.http.crearUrlModulo(configuracionJson, nombre, Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
 						// anyadir modulo en website
 						modulo.setTitulo(configuracionJson.getTitulo());
 						modulo.setRandomHexa();

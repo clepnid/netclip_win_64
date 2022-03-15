@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import portapapeles.Ficheros;
 import ventana.Ventana;
 
+//se usa para dar formato y funcionabilidad a cada modulo por entrada de fichero
 public class WebJson implements Cloneable{
 	private String hexa, titulo, goTo, descripcion, rutaImagen;
 	private ArrayList<WebJson> modulos;

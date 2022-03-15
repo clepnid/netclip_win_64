@@ -55,9 +55,9 @@ public class GuardadoRutas implements Serializable {
 		try {
 			ruta = Configuracion.deserializar().rutaGuardadoHttp;
 		} catch (ClassNotFoundException e) {
-			System.out.print("");
+			ruta = "";
 		} catch (IOException e) {
-			System.out.print("");
+			ruta = "";
 		}
 	}
 
@@ -68,9 +68,9 @@ public class GuardadoRutas implements Serializable {
 		try {
 			ruta = Configuracion.deserializar().rutaGuardadoHttp;
 		} catch (ClassNotFoundException e) {
-			System.out.print("");
+			ruta = "";
 		} catch (IOException e) {
-			System.out.print("");
+			ruta = "";
 		}
 	}
 
@@ -115,7 +115,7 @@ public class GuardadoRutas implements Serializable {
 					WebJson modulo = new WebJson();
 					if (listaModulos != null) {
 						for (ConfiguracionJson configuracionJson : listaModulos) {
-							http.crearUrlModulo(configuracionJson, nombre);
+							http.crearUrlModulo(configuracionJson, nombre, rutaSistema);
 							// anyadir modulo en website
 							modulo.setTitulo(configuracionJson.getTitulo());
 							modulo.setRandomHexa();
@@ -182,7 +182,7 @@ public class GuardadoRutas implements Serializable {
 					WebJson modulo = new WebJson();
 					if (listaModulos != null) {
 						for (ConfiguracionJson configuracionJson : listaModulos) {
-							http.crearUrlModulo(configuracionJson, nombre);
+							http.crearUrlModulo(configuracionJson, nombre, rutaSistema);
 							// anyadir modulo en website
 							modulo.setTitulo(configuracionJson.getTitulo());
 							modulo.setRandomHexa();
@@ -226,13 +226,19 @@ public class GuardadoRutas implements Serializable {
 	}
 
 	public static GuardadoRutas deserializar() throws IOException, ClassNotFoundException {
-		GuardadoRutas guardado = new GuardadoRutas();
-		FileInputStream archivo = new FileInputStream(getRuta());
-		ObjectInputStream entrada = new ObjectInputStream(archivo);
-		guardado = (GuardadoRutas) entrada.readObject();
-		entrada.close();
-		archivo.close();
-		return guardado;
+		if (getRuta()==null) {
+			new GuardadoRutas();
+		}
+		if (!getRuta().equals("")) {
+			GuardadoRutas guardado = new GuardadoRutas();
+			FileInputStream archivo = new FileInputStream(getRuta());
+			ObjectInputStream entrada = new ObjectInputStream(archivo);
+			guardado = (GuardadoRutas) entrada.readObject();
+			entrada.close();
+			archivo.close();
+			return guardado;
+		}
+		return null;
 	}
 
 	public static GuardadoRutas deserializar(String rutaSerializado) throws IOException, ClassNotFoundException {

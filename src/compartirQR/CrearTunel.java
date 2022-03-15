@@ -105,10 +105,10 @@ public class CrearTunel extends Thread {
 
 	private String[] getComandos() {
 		if (nameDns != null) {
-			String[] commands = { "node ", "./src/localtunnel/bin/lt.js", "--port", String.valueOf(Http.getPuertoHTTP()), "--subdomain", this.nameDns };
+			String[] commands = {"./src/localtunnel/lt-win.exe", "--port", String.valueOf(Http.getPuertoHTTP()), "--subdomain", this.nameDns };
 			return commands;
 		} else {
-			String[] commands = { "node ", "./src/localtunnel/bin/lt.js", "--port", String.valueOf(Http.getPuertoHTTP()) };
+			String[] commands = {"./src/localtunnel/lt-win.exe", "--port", String.valueOf(Http.getPuertoHTTP()) };
 			return commands;
 		}
 	}

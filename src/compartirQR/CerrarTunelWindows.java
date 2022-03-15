@@ -48,7 +48,7 @@ public class CerrarTunelWindows extends Thread {
 	}
 
 	private String[] getComandos() {
-			String[] commands = { "taskkill ", "/f", "/im", "node.exe"};
+			String[] commands = { "taskkill ", "/f", "/im", "lt-win.exe"};
 			return commands;
 		
 	}
