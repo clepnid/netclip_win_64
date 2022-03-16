@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import compartirQR.ConfiguracionJson;
+import http.ConfiguracionJson;
 
 public class TableComboDesplegable {
 	public static TableCombo getDesplegable(Composite parent, String nombre, ArrayList<ConfiguracionJson> config,

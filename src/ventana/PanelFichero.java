@@ -19,8 +19,8 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import compartirQR.ClepnidJson;
-import compartirQR.ConfiguracionJson;
+import http.ClepnidJson;
+import http.ConfiguracionJson;
 import portapapeles.Ficheros;
 import red.multicast.MulticastControl;
 

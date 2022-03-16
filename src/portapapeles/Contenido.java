@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import compartirQR.ClepnidJson;
-import compartirQR.ConfiguracionJson;
+import http.ClepnidJson;
+import http.ConfiguracionJson;
 import ventana.Ventana;
 
 /**

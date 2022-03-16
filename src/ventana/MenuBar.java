@@ -23,10 +23,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import compartirQR.Clepnid_WebJson;
-import compartirQR.CrearTunel;
-import compartirQR.GuardadoRutas;
-import compartirQR.Http;
+import http.Clepnid_WebJson;
+import http.CrearTunel;
+import http.GuardadoRutas;
+import http.Http;
 import red.multicast.MulticastControl;
 
 public class MenuBar {

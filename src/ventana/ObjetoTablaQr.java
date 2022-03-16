@@ -3,7 +3,7 @@ package ventana;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
-import compartirQR.ConfiguracionJson;
+import http.ConfiguracionJson;
 
 public class ObjetoTablaQr extends TableItem{
 	private Ventana ventana;
