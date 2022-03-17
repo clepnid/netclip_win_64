@@ -120,7 +120,7 @@ public class HttpCarpetaEstatica {
 				return null;
 			}
 		} else {
-			if (Ficheros.esTipo(ruta, "CSS")) {
+			if (Ficheros.esTipo(ruta, "CSS")||Ficheros.esTipo(ruta, "SCSS")) {
 				res.raw().setContentType("text/css");
 				Path path = Paths.get(ruta);
 				try {
