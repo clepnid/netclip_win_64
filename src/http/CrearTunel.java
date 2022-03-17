@@ -27,6 +27,8 @@ public class CrearTunel extends Thread {
 	public void run() {
 		// TODO Auto-generated method stub
 		Runtime rt = Runtime.getRuntime();
+		/*linux
+		 * String commands = getComandos();*/
 		String[] commands = getComandos();
 		Process proc;
 		BufferedReader stdInput = null;
@@ -112,6 +114,17 @@ public class CrearTunel extends Thread {
 			return commands;
 		}
 	}
+	
+	/*linux
+	 * private String getComandos() {
+		if (nameDns != null && !nameDns.equals("")) {
+			return "./src/localtunnel/lt-linux --port "+ String.valueOf(Http.getPuertoHTTP()) + " --subdomain "+ this.nameDns ;
+			
+		} else {
+			return "./src/localtunnel/lt-linux --port "+ String.valueOf(Http.getPuertoHTTP());
+		}
+	}*/
+	
 	public String getStandarOutput() {
 		return standarOutput;
 	}

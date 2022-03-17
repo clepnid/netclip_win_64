@@ -383,11 +383,19 @@ public class Ventana {
 	 */
 
 	public void cerrar() {
+		cerrarTunelLocalhost();
 		teclas.cerrar();
 		http.close();
 		multicastControl.close();
 		clienteEnviar.close();
 		shlSwt.dispose();
+		
+		if (!reiniciar) {
+			System.exit(0);
+		}
+	}
+	
+	private void cerrarTunelLocalhost() {
 		CerrarTunelWindows cerrarTunel = new CerrarTunelWindows();
 		cerrarTunel.start();
 		try {
@@ -395,9 +403,6 @@ public class Ventana {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		if (!reiniciar) {
-			System.exit(0);
 		}
 	}
 
