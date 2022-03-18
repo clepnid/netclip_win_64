@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class ConfiguracionWebJson implements Cloneable {
 	private String htmlReemplazoBody, html, rutaHttp;
 	private ArrayList<WebJson> archivos;
-	private MenuJsonTipos tiposArchivos = new MenuJsonTipos();;
+	private MenuJsonTipos tiposArchivos = new MenuJsonTipos();
 
 	public ConfiguracionWebJson() {
 		setHtmlReemplazoBody("");

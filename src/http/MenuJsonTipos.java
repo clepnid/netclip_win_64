@@ -104,13 +104,13 @@ public class MenuJsonTipos {
 		if (existe_modulo_subir_fichero() || existe_modulo_youtube_downloader()) {
 			jsonAux = jsonAux + "]}";
 		}
+		if (existe_modulo_subir_fichero() || existe_modulo_youtube_downloader()) {
+			jsonAux = jsonAux + ",";
+		}
 		for (Map.Entry<String, ArrayList<WebJson>> entry : map.entrySet()) {
 			final String key = entry.getKey();
 			final ArrayList<WebJson> lista = entry.getValue();
 			if (lista.size() != 0) {
-				if (existe_modulo_subir_fichero() || existe_modulo_youtube_downloader()) {
-					jsonAux = jsonAux + ",";
-				}
 				jsonAux = jsonAux + "{\r\n" + "        \"title_content\": \"" + key + "\",\r\n" + "        \"webs\": [";
 				for (WebJson web : lista) {
 					jsonAux = jsonAux + "{\"hexa\": \"" + web.getHexa() + "\",";
@@ -130,8 +130,11 @@ public class MenuJsonTipos {
 				jsonAux = jsonAux.substring(0, jsonAux.length() - 1);
 
 				jsonAux = jsonAux + "]}";
+				jsonAux = jsonAux + ",";
 			}
 		}
+		jsonAux = jsonAux.substring(0, jsonAux.length() - 1);
+		System.out.println(jsonAux);
 		return jsonAux;
 	}
 	
