@@ -28,5 +28,7 @@
 	<classpathentry kind="lib" path="src/librerias/spring-web-5.3.15.jar"/>
 	<classpathentry kind="lib" path="src/librerias/json-simple-1.1.jar"/>
 	<classpathentry kind="lib" path="src/librerias/tablecombo-1.0.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-io-2.11.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

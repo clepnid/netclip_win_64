@@ -4,7 +4,10 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -458,24 +461,28 @@ public class Http {
 	}
 
 	private static Object getFile(Request request, Response response, String rutaFichero) {
-		Path path = Paths.get(rutaFichero);
-		File file = new File(rutaFichero);
-
-		byte[] data = null;
+		InputStream is;
 		try {
-			data = Files.readAllBytes(path);
-		} catch (Exception e1) {
-			Spark.halt(405, "server error");
-		}
+			is = new FileInputStream(rutaFichero);
 
-		response.raw().setContentType("application/octet-stream");
-		response.raw().setHeader("Content-Disposition", "attachment; filename=" + file.getName());
-		try {
-			response.raw().getOutputStream().write(data);
-			response.raw().getOutputStream().flush();
-			response.raw().getOutputStream().close();
-		} catch (Exception e) {
-			Spark.halt(405, "server error");
+		    response.raw().setHeader("Content-Disposition", "attachment; filename=\"" + new File(rutaFichero).getName() + "\"");
+
+
+		    int read=0;
+		    byte[] bytes = new byte[1024];
+		    OutputStream os = response.raw().getOutputStream();
+
+		    while((read = is.read(bytes))!= -1){
+		        os.write(bytes, 0, read);
+		    }
+		    os.flush();
+		    os.close(); 
+		} catch (FileNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return response.raw();
 	}

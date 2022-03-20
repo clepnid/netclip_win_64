@@ -134,7 +134,6 @@ public class MenuJsonTipos {
 			}
 		}
 		jsonAux = jsonAux.substring(0, jsonAux.length() - 1);
-		System.out.println(jsonAux);
 		return jsonAux;
 	}
 	

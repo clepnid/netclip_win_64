@@ -1,17 +1,19 @@
 package http;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.http.Part;
-
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.util.Streams;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -19,7 +21,6 @@ import org.json.simple.parser.ParseException;
 
 import portapapeles.Ficheros;
 import spark.Spark;
-import spark.utils.IOUtils;
 import ventana.Configuracion;
 import ventana.Ventana;
 
@@ -84,83 +85,89 @@ public class Clepnid_WebJson {
 
 	private static void crearVideoDownloader() {
 		Spark.get("/downloadYoutubemp4", (request, response) -> {
-			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.YoutubeVideo, request.queryParams("url"));
+			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.YoutubeVideo,
+					request.queryParams("url"));
 			downloader.setFormat(request.queryParams("format"));
 			downloader.setQuality(request.queryParams("quality"));
 			downloader.setOutputName(request.queryParams("outputName"));
 			downloader.start();
 			return "Peticion enviada";
 		});
-		
+
 		Spark.get("/downloadYoutubemp3", (request, response) -> {
-			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.YoutubeAudio, request.queryParams("url"));
+			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.YoutubeAudio,
+					request.queryParams("url"));
 			downloader.setQuality(request.queryParams("quality"));
 			downloader.setOutputName(request.queryParams("outputName"));
 			downloader.start();
 			return "Peticion enviada";
 		});
-		
+
 		Spark.get("/downloadOthermp4", (request, response) -> {
-			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.OtherVideo, request.queryParams("url"));
+			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.OtherVideo,
+					request.queryParams("url"));
 			downloader.setOutputName(request.queryParams("outputName"));
 			downloader.start();
 			return "Peticion enviada";
 		});
-		
+
 		Spark.get("/downloadOthermp3", (request, response) -> {
-			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.OtherAudio, request.queryParams("url"));
+			VideoDownloader downloader = new VideoDownloader(VideoDownloader.Tipo.OtherAudio,
+					request.queryParams("url"));
 			downloader.setOutputName(request.queryParams("outputName"));
 			downloader.start();
 			return "Peticion enviada";
 		});
-		
-		
+
 	}
-	
 
 	private static void crearRecibirArchivos() {
 		Spark.post("/uploadFiles/:name", (request, response) -> {
-			request.attribute("org.eclipse.jetty.multipartConfig",
-					new MultipartConfigElement(Configuracion.deserializar().carpeta));
-			System.out.println("el fichero a recibir pesa: " + request.raw().getContentLength() + " bytes");
-			Part filePart = request.raw().getPart("file");
-			File ficheroAuxiliar = new File(Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
-			System.out.println(filePart.getName());
-			if (!ficheroAuxiliar.exists()) {
-				//si se usa desde el cliente subir una carpeta debera de crearse en el servidor
-				if (!ficheroAuxiliar.getParentFile().exists()) {
-					ficheroAuxiliar.getParentFile().mkdir();
-				}
-				try (InputStream inputStream = filePart.getInputStream()) {
-					System.out.println(
-							Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
-					OutputStream outputStream = new FileOutputStream(
-							Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
-					IOUtils.copy(inputStream, outputStream);
-					outputStream.close();
+			boolean isMultipart = ServletFileUpload.isMultipartContent(request.raw());
+			if (!isMultipart) {
+				//
+			}
+			String nombreFichero = request.params(":name");
+			String rutaFichero = Configuracion.deserializar().carpeta + File.separator + request.params(":name");
+			System.out.println(rutaFichero);
+			DiskFileItemFactory dff = new DiskFileItemFactory();
+			String savePath = Configuracion.deserializar().carpeta;
+			dff.setRepository(new File(savePath));
+			ServletFileUpload sfu = new ServletFileUpload(dff);
+			sfu.setSizeMax(6 * 1024 * 1024 * 1024);
+			sfu.setHeaderEncoding("utf-8");
+			FileItemIterator fii = sfu.getItemIterator(request.raw());
+			while (fii.hasNext()) {
+				FileItemStream fis = fii.next();
+				if (!fis.isFormField()) {
+
+					BufferedInputStream in = new BufferedInputStream(fis.openStream());
+					FileOutputStream out = new FileOutputStream(new File(rutaFichero));
+					BufferedOutputStream output = new BufferedOutputStream(out);
+					Streams.copy(in, output, true);
+
 				}
 			}
+
 			String extension, nombre;
 			boolean yaIntroducido;
-			if (Ficheros.tipoFichero(filePart.getSubmittedFileName()).equals("video")) {
-				nombre = Http.encodeURIcomponent(filePart.getSubmittedFileName());
+			if (Ficheros.tipoFichero(nombreFichero).equals("video")) {
+				nombre = Http.encodeURIcomponent(nombreFichero);
 				yaIntroducido = Ventana.http.estaEnUrl(nombre);
 				extension = Ficheros.getExtensionFichero(nombre);
-				Ventana.http.crearUrlVideo(nombre,
-						Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
+				Ventana.http.crearUrlVideo(nombre, rutaFichero);
 			} else {
-				nombre = Http.encodeURIcomponent(filePart.getSubmittedFileName());
+				nombre = Http.encodeURIcomponent(nombreFichero);
 				yaIntroducido = Ventana.http.estaEnUrl(nombre);
 				extension = Ficheros.getExtensionFichero(nombre);
-				Ventana.http.crearUrlArchivo(nombre,
-						Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
+				Ventana.http.crearUrlArchivo(nombre, rutaFichero);
 			}
 			if (!yaIntroducido && Clepnid_WebJson.config != null) {
 				System.out.println("hola");
 				WebJson webArchivo = new WebJson();
 				webArchivo.setArchivo();
 				webArchivo.setRandomHexa();
-				webArchivo.setTitulo(filePart.getSubmittedFileName());
+				webArchivo.setTitulo(nombreFichero);
 				webArchivo.setDescripcion("." + extension);
 				webArchivo.setGoTo(Clepnid_WebJson.config.getRutaHttp() + "/" + nombre);
 				webArchivo.setRutaImagen(WebJson.getRutaHttpImagen(nombre));
@@ -168,7 +175,7 @@ public class Clepnid_WebJson {
 				WebJson modulo = new WebJson();
 				if (listaModulos != null) {
 					for (ConfiguracionJson configuracionJson : listaModulos) {
-						Ventana.http.crearUrlModulo(configuracionJson, nombre, Configuracion.deserializar().carpeta + File.separator + filePart.getSubmittedFileName());
+						Ventana.http.crearUrlModulo(configuracionJson, nombre, rutaFichero);
 						// anyadir modulo en website
 						modulo.setTitulo(configuracionJson.getTitulo());
 						modulo.setRandomHexa();
