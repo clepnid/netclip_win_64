@@ -15,7 +15,7 @@ public class Pegar {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (!controlMulticast.ip_servidor.equals("")) {
+			if (!MulticastControl.ip_servidor.equals("")) {
 				ListaHistorial.controlarExistencia();
 				red.compartirFicheros.ClienteComando cliente = new ClienteComando(controlMulticast);
 				cliente.ruta = ruta;

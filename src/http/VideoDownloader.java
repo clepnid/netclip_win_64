@@ -74,8 +74,8 @@ public class VideoDownloader extends Thread {
 					Ventana.http.crearUrlArchivo(nombre,
 							Configuracion.deserializar().carpeta + File.separator + fileToUp);
 				}
-				if (!yaIntroducido && Clepnid_WebJson.config != null) {
-					System.out.println("hola");
+				boolean esCorrecto = OpcionesModulosHttp.esCorrecto(new File(Configuracion.deserializar().carpeta + File.separator + fileToUp));
+				if (!yaIntroducido && Clepnid_WebJson.config != null && esCorrecto) {
 					WebJson webArchivo = new WebJson();
 					webArchivo.setArchivo();
 					webArchivo.setRandomHexa();

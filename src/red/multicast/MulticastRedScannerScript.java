@@ -69,10 +69,10 @@ public class MulticastRedScannerScript extends Thread {
 							System.out.println("eliminar: " + listaIpsAux.get(i));
 							listaIps.remove(indice);
 						}
-						System.out.println("es igual?: " + ventana.cambioServidor.ip_servidor);
+						System.out.println("es igual?: " + MulticastControl.ip_servidor);
 						if (ventana.cambioServidor.equals(listaIpsAux.get(i))) {
 							System.out.println("eliminado");
-							ventana.cambioServidor.ip_servidor = "";
+							MulticastControl.ip_servidor = "";
 						}
 					}
 

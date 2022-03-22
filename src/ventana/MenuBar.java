@@ -59,6 +59,63 @@ public class MenuBar {
 		MenuItem newItem = new MenuItem(fileMenu, SWT.CASCADE);
 		newItem.setText(Ventana.idioma.getProperty("toolbar_web_menu"));
 
+		Menu newMenu = new Menu(fileMenu);
+		newItem.setMenu(newMenu);
+
+		MenuItem shortcutItem = new MenuItem(newMenu, SWT.NONE);
+		shortcutItem.setText(Ventana.idioma.getProperty("toolbar_web_menu_ir_a_web"));
+		shortcutItem.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				Program.launch("http://localhost:" + Http.getPuertoHTTP() + "/menu");
+			}
+
+		});
+
+		MenuItem iconItem = new MenuItem(newMenu, SWT.NONE);
+		iconItem.setText(Ventana.idioma.getProperty("toolbar_web_menu_mostrar_qr"));
+		iconItem.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				ventana.crearVentanaQR(ventana.shlSwt,
+						"http://" + MulticastControl.getMyIps().get(0) + ":" + Http.getPuertoHTTP() + "/menu");
+			}
+
+		});
+
+		// Create the File item's dropdown menu
+
+		MenuItem newItemServer = new MenuItem(fileMenu, SWT.CASCADE);
+		newItemServer.setText(Ventana.idioma.getProperty("toolbar_web_menu_servidor"));
+
+		Menu newMenuServer = new Menu(fileMenu);
+		newItemServer.setMenu(newMenuServer);
+
+		MenuItem shortcutItemServer = new MenuItem(newMenuServer, SWT.NONE);
+		shortcutItemServer.setText(Ventana.idioma.getProperty("toolbar_web_menu_ir_a_web"));
+		shortcutItemServer.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				Program.launch("http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/menu");
+			}
+
+		});
+
+		MenuItem iconItemServer = new MenuItem(newMenuServer, SWT.NONE);
+		iconItemServer.setText(Ventana.idioma.getProperty("toolbar_web_menu_mostrar_qr"));
+		iconItemServer.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				ventana.crearVentanaQR(ventana.shlSwt,
+						"http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/menu");
+			}
+
+		});
+
 		// añade separador
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 
@@ -119,7 +176,8 @@ public class MenuBar {
 						public void handleEvent(Event e) {
 							ventana.display.asyncExec(new Runnable() {
 								public void run() {
-									CrearTunel tunel = new CrearTunel(text_nombre.getText(), text_output, ventana.display);
+									CrearTunel tunel = new CrearTunel(text_nombre.getText(), text_output,
+											ventana.display);
 									tunel.start();
 								}
 							});
@@ -368,31 +426,7 @@ public class MenuBar {
 			}
 
 		});
-		Menu newMenu = new Menu(fileMenu);
-		newItem.setMenu(newMenu);
 
-		MenuItem shortcutItem = new MenuItem(newMenu, SWT.NONE);
-		shortcutItem.setText(Ventana.idioma.getProperty("toolbar_web_menu_ir_a_web"));
-		shortcutItem.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				Program.launch("http://localhost:" + Http.getPuertoHTTP() + "/menu");
-			}
-
-		});
-
-		MenuItem iconItem = new MenuItem(newMenu, SWT.NONE);
-		iconItem.setText(Ventana.idioma.getProperty("toolbar_web_menu_mostrar_qr"));
-		iconItem.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				ventana.crearVentanaQR(ventana.shlSwt,
-						"http://" + MulticastControl.getMyIps().get(0) + ":" + Http.getPuertoHTTP() + "/menu");
-			}
-
-		});
 		MenuItem mostrarItem = new MenuItem(menuBar, SWT.NONE);
 		mostrarItem.setText(Ventana.idioma.getProperty("toolbar_ayuda"));
 		mostrarItem.addListener(SWT.Selection, new Listener() {

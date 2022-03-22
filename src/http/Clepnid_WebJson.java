@@ -123,10 +123,6 @@ public class Clepnid_WebJson {
 
 	private static void crearRecibirArchivos() {
 		Spark.post("/uploadFiles/:name", (request, response) -> {
-			boolean isMultipart = ServletFileUpload.isMultipartContent(request.raw());
-			if (!isMultipart) {
-				//
-			}
 			String nombreFichero = request.params(":name");
 			String rutaFichero = Configuracion.deserializar().carpeta + File.separator + request.params(":name");
 			System.out.println(rutaFichero);
@@ -134,7 +130,7 @@ public class Clepnid_WebJson {
 			String savePath = Configuracion.deserializar().carpeta;
 			dff.setRepository(new File(savePath));
 			ServletFileUpload sfu = new ServletFileUpload(dff);
-			sfu.setSizeMax(6 * 1024 * 1024 * 1024);
+			sfu.setSizeMax(OpcionesModulosHttp.getFileSize());
 			sfu.setHeaderEncoding("utf-8");
 			FileItemIterator fii = sfu.getItemIterator(request.raw());
 			while (fii.hasNext()) {
@@ -145,9 +141,13 @@ public class Clepnid_WebJson {
 					FileOutputStream out = new FileOutputStream(new File(rutaFichero));
 					BufferedOutputStream output = new BufferedOutputStream(out);
 					Streams.copy(in, output, true);
-
+					in.close();
+					output.close();
+					out.close();
 				}
 			}
+			
+			
 
 			String extension, nombre;
 			boolean yaIntroducido;

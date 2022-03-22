@@ -85,7 +85,7 @@ public class Cliente extends Thread {
 				try {
 					conectado = false;
 					sc = new Socket();
-					InetSocketAddress direccion = new InetSocketAddress(multicastControl.ip_servidor, PUERTO);
+					InetSocketAddress direccion = new InetSocketAddress(MulticastControl.ip_servidor, PUERTO);
 					sc.setSoTimeout(1000);
 					sc.connect(direccion);
 				} catch (Exception e) {

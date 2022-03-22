@@ -243,7 +243,7 @@ public class ClienteComando extends Thread {
 		// Creo el socket para conectarme con el client
 		boolean estaConectado = true;
 		try {
-			sc = new Socket(multicastControl.ip_servidor, PUERTO);
+			sc = new Socket(MulticastControl.ip_servidor, PUERTO);
 		} catch (Exception e) {
 			estaConectado = false;
 		}

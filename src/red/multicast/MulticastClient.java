@@ -99,8 +99,8 @@ public class MulticastClient extends Thread {
 			}
 			if (!tiempoExpirado) {
 				if (!multicast.soyServidor()) {
-					if (!multicast.ip_servidor.equals(dgram.getAddress().getHostAddress())) {
-						multicast.ip_servidor = dgram.getAddress().getHostAddress();
+					if (!MulticastControl.ip_servidor.equals(dgram.getAddress().getHostAddress())) {
+						MulticastControl.ip_servidor = dgram.getAddress().getHostAddress();
 						System.out.println("4. recibido servidor");
 						if (multicast.soyServidor()) {
 							multicast.soyServidor = true;

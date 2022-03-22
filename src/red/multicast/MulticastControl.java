@@ -24,7 +24,7 @@ public class MulticastControl extends Thread {
 	private final int BYTE_LENGTH = 10, PUERTO_CAMBIO_SERVIDOR = 4010;
 	private final String IP_BROADCAST = "224.0.0.1";
 	public MulticastSocket socket;
-	public String ip_servidor;
+	public static String ip_servidor;
 	public byte[] b;
 	public Boolean soyServidor;
 	public MulticastServer servidor;
@@ -93,10 +93,10 @@ public class MulticastControl extends Thread {
 			if (!tiempoExpirado) {
 				if (byteArrayToInt(dgram.getData()) != 0) {
 					if (byteArrayToInt(dgram.getData()) == 2) {
-						this.ip_servidor = "";
+						ip_servidor = "";
 						soyServidor = false;
 					} else {
-						this.ip_servidor = dgram.getAddress().getHostAddress();
+						ip_servidor = dgram.getAddress().getHostAddress();
 						if (soyServidor()) {
 							soyServidor = true;
 							if (!servidor.isAlive()) {
@@ -109,8 +109,8 @@ public class MulticastControl extends Thread {
 						}
 					}
 				} else {
-					if (this.ip_servidor.equals(dgram.getAddress().getHostAddress())) {
-						this.ip_servidor = "";
+					if (ip_servidor.equals(dgram.getAddress().getHostAddress())) {
+						ip_servidor = "";
 					}
 				}
 
@@ -124,11 +124,11 @@ public class MulticastControl extends Thread {
 	}
 
 	public Boolean soyServidor() {
-		return getMyIps().contains(this.ip_servidor);
+		return getMyIps().contains(ip_servidor);
 	}
 
 	public Boolean hayServidor() {
-		if (this.ip_servidor.equals("")) {
+		if (ip_servidor.equals("")) {
 			return false;
 		}
 		return true;

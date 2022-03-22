@@ -17,6 +17,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 
+import http.OpcionesModulosHttp;
+
 public class Configuracion implements Serializable {
 	/**
 	 * 
@@ -29,6 +31,8 @@ public class Configuracion implements Serializable {
 			+ "rutas.ser";
 	public static final int LENGTHSERIAL = 15;
 	public Boolean isAutomatic, recibirEnvios, inicializarRutas;
+	public OpcionesModulosHttp.FileSizeMedida filesizemedida;
+	public int filesizenumber = 0;
 
 	public Configuracion() {
 		this.nombre = "";
@@ -39,6 +43,8 @@ public class Configuracion implements Serializable {
 		this.isAutomatic = false;
 		this.recibirEnvios = false;
 		this.inicializarRutas = false;
+		this.filesizemedida = OpcionesModulosHttp.FileSizeMedida.None;
+		this.filesizenumber = 0;
 	}
 
 	public Configuracion(String nombre, String carpeta, Boolean isAutomatic, String serial) {
@@ -100,13 +106,13 @@ public class Configuracion implements Serializable {
 	}
 
 	public static Boolean controlarExistencia() {
+		File ficheroAux = new File(System.getProperty("user.home") + File.separator + "Clepnid");
+		if (!ficheroAux.exists()) {
+			ficheroAux.mkdir();
+		}
 		if (!existeFicheroConfig()) {
 			Configuracion configAux = new Configuracion();
 			String string = System.getProperty("user.home");
-			File ficheroAux = new File(string + File.separator + "Clepnid");
-			if (!ficheroAux.exists()) {
-				ficheroAux.mkdir();
-			}
 			configAux.carpeta = string + File.separator + "Clepnid";
 			string = getNombreRed();
 			if (!(string == null)) {
@@ -118,6 +124,9 @@ public class Configuracion implements Serializable {
 			configAux.isAutomatic = false;
 			configAux.recibirEnvios = false;
 			configAux.inicializarRutas = false;
+			configAux.idioma = "Ingles";
+			configAux.filesizemedida = OpcionesModulosHttp.FileSizeMedida.None;
+			configAux.filesizenumber = 0;
 			configAux.serial = getRandomString(LENGTHSERIAL);
 			try {
 				serializar(configAux);
@@ -125,6 +134,49 @@ public class Configuracion implements Serializable {
 				return false;
 			}
 
+		}
+		try {
+			Configuracion configDeserializada = deserializar();
+			if (configDeserializada.idioma==null) {
+				configDeserializada.idioma = "Ingles";
+			}
+			if (configDeserializada.nombre==null) {
+				String nombreRed = getNombreRed();
+				if (!(nombreRed == null)) {
+					configDeserializada.nombre = nombreRed;
+				} else {
+					configDeserializada.nombre = "User";
+				}
+			}
+			
+			if (configDeserializada.inicializarRutas==null) {
+				configDeserializada.inicializarRutas = false;
+			}
+			if (configDeserializada.recibirEnvios==null) {
+				configDeserializada.recibirEnvios = false;
+			}
+			if (configDeserializada.isAutomatic==null) {
+				configDeserializada.isAutomatic = false;
+			}
+			if (configDeserializada.rutaGuardadoHttp==null) {
+				configDeserializada.rutaGuardadoHttp = RUTAHTTPGUARDADO;
+			}
+			if (configDeserializada.filesizemedida==null) {
+				configDeserializada.filesizemedida = OpcionesModulosHttp.FileSizeMedida.None;
+			}
+			if (configDeserializada.serial==null) {
+				configDeserializada.serial = getRandomString(LENGTHSERIAL);
+			}
+			try {
+				serializar(configDeserializada);
+			} catch (IOException e) {
+				return false;
+			}
+			
+		} catch (ClassNotFoundException e) {
+			return false;
+		} catch (IOException e) {
+			return false;
 		}
 		return true;
 	}
