@@ -101,6 +101,12 @@ Or don't write any subdomain name, getting a random url.
 
 ![image](https://user-images.githubusercontent.com/66835340/158061597-3b3a9c48-3e5a-4b81-9aa8-7ecffc6345f7.png)
 
+It is possible that the operation of this option is not good, in this case use recommended external applications such as:
+
+https://localxpose.io/
+
+https://ngrok.com/
+
 
 ## Add Modules
 
