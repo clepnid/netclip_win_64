@@ -27,6 +27,7 @@ import http.Clepnid_WebJson;
 import http.CrearTunel;
 import http.GuardadoRutas;
 import http.Http;
+import http.OpcionesModulosHttp;
 import red.multicast.MulticastControl;
 
 public class MenuBar {
@@ -116,6 +117,120 @@ public class MenuBar {
 
 		});
 
+		// añade separador
+		new MenuItem(fileMenu, SWT.SEPARATOR);
+
+		MenuItem makeLicencia = new MenuItem(fileMenu, SWT.NONE);
+		makeLicencia.setText(Ventana.idioma.getProperty("toolbar_web_licencia"));
+		makeLicencia.addListener(SWT.Selection, new Listener() {
+
+			public void handleEvent(Event event) {
+				if (!ventanaObtenerLinkAbierta) {
+					Shell shell = new Shell(ventana.shlSwt, SWT.SHELL_TRIM);
+					shell.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					shell.setSize(600, 500);
+					shell.setMinimumSize(400, 0);
+					shell.setText(Ventana.idioma.getProperty("toolbar_web_licencia"));
+					shell.setLayout(new GridLayout(1, false));
+
+					shell.addListener(SWT.Close, new Listener() {
+						public void handleEvent(Event event) {
+							ventanaObtenerLinkAbierta = false;
+						}
+					});
+					Composite composite = new Composite(shell, SWT.NONE);
+					composite.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					composite.setLayout(new GridLayout(1, false));
+					composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+					Composite compositeNombre = new Composite(composite, SWT.NONE);
+					compositeNombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					compositeNombre.setLayout(new GridLayout(2, false));
+					compositeNombre.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+					Label label = new Label(compositeNombre, SWT.NONE);
+					label.setText(Ventana.idioma.getProperty("toolbar_web_licencia") + " ");
+					label.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+
+					Text text_nombre = new Text(compositeNombre, SWT.BORDER);
+					text_nombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					text_nombre.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+					Composite compositeOutput = new Composite(composite, SWT.NONE);
+					compositeOutput.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					compositeOutput.setLayout(new GridLayout(1, false));
+					compositeOutput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+					Text text_output = new Text(compositeOutput, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL);
+					text_output.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+					text_output.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+
+					Composite compositeBotones = new Composite(composite, SWT.NONE);
+					compositeBotones.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+					compositeBotones.setLayout(new GridLayout(2, false));
+					compositeBotones.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 1, 1));
+
+					Button btnCrear = new Button(compositeBotones, SWT.PUSH);
+					btnCrear.setText(Ventana.idioma.getProperty("toolbar_web_introducir_licencia"));
+
+					btnCrear.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event e) {
+							ventana.display.asyncExec(new Runnable() {
+								public void run() {
+									String codigo = text_nombre.getText();
+									if (OpcionesModulosHttp.validar(codigo)) {
+										Configuracion config = null;
+										try {
+											config = Configuracion.deserializar();
+										} catch (ClassNotFoundException | IOException e) {
+											System.out.print("");
+										}
+										if (config!=null) {
+											config.licencia = codigo;
+										}
+										try {
+											Configuracion.serializar(config);
+											text_output.setText(Ventana.idioma.getProperty("toolbar_web_licencia_comprobar"));
+											OpcionesModulosHttp.tipoPremium=OpcionesModulosHttp.setTipoLicencia();
+										} catch (IOException e) {
+											System.out.print("");
+										}
+										
+									}else {
+										text_output.setText(Ventana.idioma.getProperty("toolbar_web_licencia_comprobar_incorrecta"));
+									}
+								}
+							});
+						}
+					});
+					btnCrear.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+
+					Button btnCerrar = new Button(compositeBotones, SWT.PUSH);
+					btnCerrar.setText(Ventana.idioma.getProperty("toolbar_web_cerrar"));
+
+					btnCerrar.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event e) {
+							shell.close();
+							ventanaObtenerLinkAbierta = false;
+						}
+					});
+					btnCerrar.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+
+					shell.pack();
+					Monitor primary = Display.getCurrent().getPrimaryMonitor();
+					Rectangle bounds = primary.getBounds();
+					Rectangle rect = Display.getCurrent().getActiveShell().getBounds();
+					int x = bounds.x + (bounds.width - rect.width) / 2;
+					int y = bounds.y + (bounds.height - rect.height) / 2;
+					shell.setLocation(x, y);
+					shell.open();
+					ventanaObtenerLinkAbierta = true;
+				}
+
+			}
+
+		});
+		
 		// añade separador
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 

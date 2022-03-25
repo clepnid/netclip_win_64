@@ -419,13 +419,13 @@ public class Http {
 
 	private static String renderIndex(Request request, Response responce) throws IOException, URISyntaxException {
 		Path path = Paths.get("./src/html/index.html");
-		return new String(Files.readAllBytes(path), Charset.defaultCharset());
+		return OpcionesModulosHttp.getHtml(new String(Files.readAllBytes(path), Charset.defaultCharset()));
 	}
 
 	public static String renderIndex(Request request, Response responce, String ruta)
 			throws IOException, URISyntaxException {
 		Path path = Paths.get(ruta);
-		return new String(Files.readAllBytes(path), Charset.defaultCharset());
+		return OpcionesModulosHttp.getHtml(new String(Files.readAllBytes(path), Charset.defaultCharset()));
 	}
 
 	private static String renderHtml(Request request, Response responce) throws IOException, URISyntaxException {

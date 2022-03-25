@@ -24,7 +24,7 @@ public class Configuracion implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public String nombre, carpeta, serial, rutaGuardadoHttp, idioma;
+	public String nombre, carpeta, serial, rutaGuardadoHttp, idioma, licencia;
 	private static final String RUTA = System.getProperty("user.home") + File.separator + "Clepnid" + File.separator
 			+ "Configuracion.ser";
 	private static final String RUTAHTTPGUARDADO = System.getProperty("user.home") + File.separator + "Clepnid" + File.separator
@@ -45,6 +45,7 @@ public class Configuracion implements Serializable {
 		this.inicializarRutas = false;
 		this.filesizemedida = OpcionesModulosHttp.FileSizeMedida.None;
 		this.filesizenumber = 0;
+		this.licencia = "";
 	}
 
 	public Configuracion(String nombre, String carpeta, Boolean isAutomatic, String serial) {
@@ -128,6 +129,7 @@ public class Configuracion implements Serializable {
 			configAux.filesizemedida = OpcionesModulosHttp.FileSizeMedida.None;
 			configAux.filesizenumber = 0;
 			configAux.serial = getRandomString(LENGTHSERIAL);
+			configAux.licencia = "";
 			try {
 				serializar(configAux);
 			} catch (IOException e) {
@@ -166,6 +168,9 @@ public class Configuracion implements Serializable {
 			}
 			if (configDeserializada.serial==null) {
 				configDeserializada.serial = getRandomString(LENGTHSERIAL);
+			}
+			if (configDeserializada.licencia==null) {
+				configDeserializada.licencia = "";
 			}
 			try {
 				serializar(configDeserializada);
