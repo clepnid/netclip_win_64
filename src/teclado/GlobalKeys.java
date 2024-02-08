@@ -18,6 +18,7 @@ import ventana.Ventana;
 
 public class GlobalKeys {
 
+	private static GlobalKeys INSTANCE;
 	public EventoTeclasGlobal eventos;
 
 	/**
@@ -29,8 +30,8 @@ public class GlobalKeys {
 	 * 
 	 */
 
-	public GlobalKeys(Ventana ventana) {
-		eventos = new EventoTeclasGlobal(ventana);
+	private GlobalKeys() {
+		eventos = EventoTeclasGlobal.getInstance();
 		try {
 			// bloquear la impresion de registros de la clase GlobalScreen.
 			Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
@@ -42,6 +43,14 @@ public class GlobalKeys {
 		}
 		GlobalScreen.addNativeKeyListener(eventos);
 	}
+	
+	public static GlobalKeys getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new GlobalKeys();
+        }
+        
+        return INSTANCE;
+    }
 
 	/**
 	 * Finaliza el hilo de eventos de teclas del sistema operativo.

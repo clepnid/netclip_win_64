@@ -23,20 +23,28 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import http.Clepnid_WebJson;
+import barraNavegacion.VentanaIconos;
+import barraNavegacion.VentanaModificarLogo;
+import http.JsonModulosMenuWeb;
 import http.CrearTunel;
 import http.GuardadoRutas;
 import http.Http;
-import http.OpcionesModulosHttp;
 import red.multicast.MulticastControl;
+import usuarios.VentanaAdministrarAccesoGrupos;
+import usuarios.VentanaAdministrarGrupos;
+import usuarios.VentanaAdministrarUsuarios;
+import ventanaGestionarModulo.VentanaGestionarModulosWeb;
 
 public class MenuBar {
 	private Ventana ventana;
-	private Boolean ventanaEliminarRutaAbierta, ventanaAyudaAbierta, ventanaObtenerLinkAbierta;
+	private Boolean ventanaEliminarRutaAbierta, ventanaAyudaAbierta, ventanaObtenerLinkAbierta,
+			ventanaGestionModuloAbierta;
+	private ventanaGestionModulo.Ventana ventanaGestionModulo;
 
 	public MenuBar(Ventana ventana) {
 		this.setVentana(ventana);
 		ventanaEliminarRutaAbierta = false;
+		ventanaGestionModuloAbierta = false;
 		ventanaAyudaAbierta = false;
 		ventanaObtenerLinkAbierta = false;
 		ventana.shlSwt.setLayout(new GridLayout());
@@ -53,7 +61,7 @@ public class MenuBar {
 
 		// si no se ha cargado la configuracion del menu no se podrá realizar esta
 		// accion
-		if (Clepnid_WebJson.config == null) {
+		if (JsonModulosMenuWeb.config == null) {
 			fileItem.setEnabled(false);
 		}
 
@@ -117,120 +125,6 @@ public class MenuBar {
 
 		});
 
-		// añade separador
-		new MenuItem(fileMenu, SWT.SEPARATOR);
-
-		MenuItem makeLicencia = new MenuItem(fileMenu, SWT.NONE);
-		makeLicencia.setText(Ventana.idioma.getProperty("toolbar_web_licencia"));
-		makeLicencia.addListener(SWT.Selection, new Listener() {
-
-			public void handleEvent(Event event) {
-				if (!ventanaObtenerLinkAbierta) {
-					Shell shell = new Shell(ventana.shlSwt, SWT.SHELL_TRIM);
-					shell.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					shell.setSize(600, 500);
-					shell.setMinimumSize(400, 0);
-					shell.setText(Ventana.idioma.getProperty("toolbar_web_licencia"));
-					shell.setLayout(new GridLayout(1, false));
-
-					shell.addListener(SWT.Close, new Listener() {
-						public void handleEvent(Event event) {
-							ventanaObtenerLinkAbierta = false;
-						}
-					});
-					Composite composite = new Composite(shell, SWT.NONE);
-					composite.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					composite.setLayout(new GridLayout(1, false));
-					composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-					Composite compositeNombre = new Composite(composite, SWT.NONE);
-					compositeNombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					compositeNombre.setLayout(new GridLayout(2, false));
-					compositeNombre.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-					Label label = new Label(compositeNombre, SWT.NONE);
-					label.setText(Ventana.idioma.getProperty("toolbar_web_licencia") + " ");
-					label.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-
-					Text text_nombre = new Text(compositeNombre, SWT.BORDER);
-					text_nombre.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					text_nombre.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
-					Composite compositeOutput = new Composite(composite, SWT.NONE);
-					compositeOutput.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					compositeOutput.setLayout(new GridLayout(1, false));
-					compositeOutput.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-					Text text_output = new Text(compositeOutput, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL);
-					text_output.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-					text_output.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-
-					Composite compositeBotones = new Composite(composite, SWT.NONE);
-					compositeBotones.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-					compositeBotones.setLayout(new GridLayout(2, false));
-					compositeBotones.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 1, 1));
-
-					Button btnCrear = new Button(compositeBotones, SWT.PUSH);
-					btnCrear.setText(Ventana.idioma.getProperty("toolbar_web_introducir_licencia"));
-
-					btnCrear.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event e) {
-							ventana.display.asyncExec(new Runnable() {
-								public void run() {
-									String codigo = text_nombre.getText();
-									if (OpcionesModulosHttp.validar(codigo)) {
-										Configuracion config = null;
-										try {
-											config = Configuracion.deserializar();
-										} catch (ClassNotFoundException | IOException e) {
-											System.out.print("");
-										}
-										if (config!=null) {
-											config.licencia = codigo;
-										}
-										try {
-											Configuracion.serializar(config);
-											text_output.setText(Ventana.idioma.getProperty("toolbar_web_licencia_comprobar"));
-											OpcionesModulosHttp.tipoPremium=OpcionesModulosHttp.setTipoLicencia();
-										} catch (IOException e) {
-											System.out.print("");
-										}
-										
-									}else {
-										text_output.setText(Ventana.idioma.getProperty("toolbar_web_licencia_comprobar_incorrecta"));
-									}
-								}
-							});
-						}
-					});
-					btnCrear.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-
-					Button btnCerrar = new Button(compositeBotones, SWT.PUSH);
-					btnCerrar.setText(Ventana.idioma.getProperty("toolbar_web_cerrar"));
-
-					btnCerrar.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event e) {
-							shell.close();
-							ventanaObtenerLinkAbierta = false;
-						}
-					});
-					btnCerrar.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-
-					shell.pack();
-					Monitor primary = Display.getCurrent().getPrimaryMonitor();
-					Rectangle bounds = primary.getBounds();
-					Rectangle rect = Display.getCurrent().getActiveShell().getBounds();
-					int x = bounds.x + (bounds.width - rect.width) / 2;
-					int y = bounds.y + (bounds.height - rect.height) / 2;
-					shell.setLocation(x, y);
-					shell.open();
-					ventanaObtenerLinkAbierta = true;
-				}
-
-			}
-
-		});
-		
 		// añade separador
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 
@@ -325,6 +219,32 @@ public class MenuBar {
 			}
 
 		});
+		// añade separador
+		new MenuItem(fileMenu, SWT.SEPARATOR);
+		
+		MenuItem menuIconoMenu = new MenuItem(fileMenu, SWT.NONE);
+		menuIconoMenu.setText("Gestionar Iconos MenuBar");
+		menuIconoMenu.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				new VentanaIconos(ventana);
+			}
+		});
+		
+		MenuItem menuIconoLogo = new MenuItem(fileMenu, SWT.NONE);
+		menuIconoLogo.setText("Modificar Logo MenuBar");
+		menuIconoLogo.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				new VentanaModificarLogo(ventana);
+			}
+		});
+		
+		MenuItem menuGestionarModulosWeb = new MenuItem(fileMenu, SWT.NONE);
+		menuGestionarModulosWeb.setText("Gestionar Modulos Web");
+		menuGestionarModulosWeb.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				new VentanaGestionarModulosWeb();
+			}
+		});
 
 		// añade separador
 		new MenuItem(fileMenu, SWT.SEPARATOR);
@@ -346,7 +266,7 @@ public class MenuBar {
 							e1.printStackTrace();
 						}
 						if (guardado != null) {
-							guardado.cargar(Ventana.http);
+							guardado.cargar(Ventana.getInstance().http);
 						}
 					}
 				});
@@ -358,7 +278,7 @@ public class MenuBar {
 			public void handleEvent(Event event) {
 				ventana.display.asyncExec(new Runnable() {
 					public void run() {
-						GuardadoRutas guardado = new GuardadoRutas(Ventana.http);
+						GuardadoRutas guardado = new GuardadoRutas(Ventana.getInstance().http);
 						try {
 							GuardadoRutas.serializar(guardado);
 						} catch (IOException e) {
@@ -392,7 +312,7 @@ public class MenuBar {
 								e1.printStackTrace();
 							}
 							if (guardado != null) {
-								guardado.cargar(Ventana.http);
+								guardado.cargar(Ventana.getInstance().http);
 							}
 						}
 					}
@@ -419,7 +339,7 @@ public class MenuBar {
 								e1.printStackTrace();
 							}
 							if (guardado != null) {
-								guardado.acoplar(Ventana.http);
+								guardado.acoplar(Ventana.getInstance().http);
 							}
 						}
 					}
@@ -436,7 +356,7 @@ public class MenuBar {
 						DirectoryDialog dialog = new DirectoryDialog(ventana.shlSwt);
 						String ruta = dialog.open();
 						if (ruta != null) {
-							GuardadoRutas guardado = new GuardadoRutas(Ventana.http);
+							GuardadoRutas guardado = new GuardadoRutas(Ventana.getInstance().http);
 							try {
 								GuardadoRutas.serializar(guardado, ruta);
 							} catch (IOException e) {
@@ -479,7 +399,7 @@ public class MenuBar {
 					list.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 					list.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 					list.setBounds(0, 0, 108, 28);
-					for (String url : Ventana.http.getUrlsParciales()) {
+					for (String url : Ventana.getInstance().http.getUrlsParciales()) {
 						list.add(url);
 					}
 					Composite composite_1 = new Composite(shell, SWT.NONE);
@@ -494,7 +414,7 @@ public class MenuBar {
 						public void handleEvent(Event e) {
 							String[] nombres = list.getSelection();
 							for (int i = 0; i < list.getSelection().length; i++) {
-								Ventana.http.eliminarUrl(nombres[i]);
+								Ventana.getInstance().http.eliminarUrl(nombres[i]);
 							}
 							list.remove(list.getSelectionIndices());
 							if (ventana.multicastControl.soyServidor()) {
@@ -534,7 +454,7 @@ public class MenuBar {
 
 			@Override
 			public void handleEvent(Event event) {
-				Ventana.http.vaciarUrls();
+				Ventana.getInstance().http.vaciarUrls();
 				ventana.lblBotonServidor
 						.setImage(SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_on_down.gif"));
 				ventana.pararServidor();
@@ -542,9 +462,61 @@ public class MenuBar {
 
 		});
 
-		MenuItem mostrarItem = new MenuItem(menuBar, SWT.NONE);
-		mostrarItem.setText(Ventana.idioma.getProperty("toolbar_ayuda"));
-		mostrarItem.addListener(SWT.Selection, new Listener() {
+		MenuItem mostrarVentanaGestionModulo = new MenuItem(menuBar, SWT.NONE);
+		mostrarVentanaGestionModulo.setText("Gestionar M�dulo");
+		mostrarVentanaGestionModulo.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				if (!ventanaGestionModuloAbierta) {
+					setVentanaGestionModulo(new ventanaGestionModulo.Ventana(ventana));
+					ventanaGestionModuloAbierta = true;
+				}
+			}
+
+		});
+
+		
+		// Create the File item's dropdown menu
+		Menu userMenu = new Menu(menuBar);
+		// Create all the items in the bar menu
+		MenuItem userItem = new MenuItem(menuBar, SWT.CASCADE);
+		userItem.setText("Usuario");
+		userItem.setMenu(userMenu);
+		
+		MenuItem adminAcceso = new MenuItem(userMenu, SWT.NONE);
+		adminAcceso.setText("Administrar Acceso Grupos");
+		adminAcceso.addListener(SWT.Selection, new Listener() {
+
+			public void handleEvent(Event event) {
+				new VentanaAdministrarAccesoGrupos(ventana.shlSwt);
+			}
+
+		});
+		
+		MenuItem adminGrupo = new MenuItem(userMenu, SWT.NONE);
+		adminGrupo.setText("Administrar Grupos");
+		adminGrupo.addListener(SWT.Selection, new Listener() {
+
+			public void handleEvent(Event event) {
+				new VentanaAdministrarGrupos(ventana);
+			}
+
+		});
+		
+		MenuItem adminUsuarios = new MenuItem(userMenu, SWT.NONE);
+		adminUsuarios.setText("Administrar Usuarios");
+		adminUsuarios.addListener(SWT.Selection, new Listener() {
+
+			public void handleEvent(Event event) {
+				new VentanaAdministrarUsuarios(ventana);
+			}
+
+		});
+		
+		MenuItem menuAyuda = new MenuItem(menuBar, SWT.NONE);
+		menuAyuda.setText(Ventana.idioma.getProperty("toolbar_ayuda"));
+		menuAyuda.addListener(SWT.Selection, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
@@ -610,6 +582,8 @@ public class MenuBar {
 			}
 
 		});
+		
+		
 
 		ventana.shlSwt.setMenuBar(menuBar);
 	}
@@ -620,6 +594,22 @@ public class MenuBar {
 
 	public void setVentana(Ventana ventana) {
 		this.ventana = ventana;
+	}
+
+	public boolean isventanaGestionModuloAbierta() {
+		return ventanaGestionModuloAbierta;
+	}
+
+	public void setVentanaGestionModuloAbierta(boolean bool) {
+		this.ventanaGestionModuloAbierta = bool;
+	}
+
+	public ventanaGestionModulo.Ventana getVentanaGestionModulo() {
+		return ventanaGestionModulo;
+	}
+
+	public void setVentanaGestionModulo(ventanaGestionModulo.Ventana ventanaGestionModulo) {
+		this.ventanaGestionModulo = ventanaGestionModulo;
 	}
 
 }

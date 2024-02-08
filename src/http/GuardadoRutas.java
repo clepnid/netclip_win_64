@@ -16,7 +16,7 @@ import ventana.Configuracion;
 public class GuardadoRutas implements Serializable {
 
 	/**
-	 *
+	 *	Se utiliza para guardar los ficheros que tiene compartido el servidor
 	 */
 	private static final long serialVersionUID = 1L;
 	private ArrayList<String> nombres;
@@ -104,15 +104,16 @@ public class GuardadoRutas implements Serializable {
 				}
 
 				if (!yaIntroducido) {
-					WebJson webArchivo = new WebJson();
+					JsonEntradaMenuModulo webArchivo = new JsonEntradaMenuModulo();
 					webArchivo.setArchivo();
 					webArchivo.setRandomHexa();
 					webArchivo.setTitulo(nombre);
 					webArchivo.setDescripcion("." + extension);
-					webArchivo.setGoTo(Clepnid_WebJson.config.getRutaHttp() + "/" + nombre);
-					webArchivo.setRutaImagen(WebJson.getRutaHttpImagen(nombre));
-					ArrayList<ConfiguracionJson> listaModulos = ClepnidJson.obtenerConfiguraciones(extension);
-					WebJson modulo = new WebJson();
+					webArchivo.setGoTo(JsonModulosMenuWeb.config.getRutaHttp() + "/" + nombre);
+					System.out.println("GuardadoRutas");
+					webArchivo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagen(nombre));
+					ArrayList<ConfiguracionJson> listaModulos = JsonModulosFicheros.obtenerConfiguraciones(extension);
+					JsonEntradaMenuModulo modulo = new JsonEntradaMenuModulo();
 					if (listaModulos != null) {
 						for (ConfiguracionJson configuracionJson : listaModulos) {
 							http.crearUrlModulo(configuracionJson, nombre, rutaSistema);
@@ -131,13 +132,13 @@ public class GuardadoRutas implements Serializable {
 					modulo.setRandomHexa();
 					modulo.setDescripcion(nombre);
 					modulo.setGoTo("/" + nombre);
-					modulo.setRutaImagen(WebJson.getRutaHttpImagenDescarga());
+					modulo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagenDescarga());
 					webArchivo.addModulo(modulo);
-					Clepnid_WebJson.config.addWeb(webArchivo);
+					JsonModulosMenuWeb.config.addWeb(webArchivo);
 				}
 			}
 		}
-		http.crearUrlIndice(Clepnid_WebJson.config);
+		http.crearUrlIndice(JsonModulosMenuWeb.config);
 	}
 
 	public void cargar(Http http) {
@@ -171,15 +172,16 @@ public class GuardadoRutas implements Serializable {
 				}
 
 				if (!yaIntroducido) {
-					WebJson webArchivo = new WebJson();
+					JsonEntradaMenuModulo webArchivo = new JsonEntradaMenuModulo();
 					webArchivo.setArchivo();
 					webArchivo.setRandomHexa();
 					webArchivo.setTitulo(nombre);
 					webArchivo.setDescripcion("." + extension);
-					webArchivo.setGoTo(Clepnid_WebJson.config.getRutaHttp() + "/" + nombre);
-					webArchivo.setRutaImagen(WebJson.getRutaHttpImagen(nombre));
-					ArrayList<ConfiguracionJson> listaModulos = ClepnidJson.obtenerConfiguraciones(extension);
-					WebJson modulo = new WebJson();
+					webArchivo.setGoTo(JsonModulosMenuWeb.config.getRutaHttp() + "/" + nombre);
+					System.out.println("GuardadoRutas");
+					webArchivo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagen(nombre));
+					ArrayList<ConfiguracionJson> listaModulos = JsonModulosFicheros.obtenerConfiguraciones(extension);
+					JsonEntradaMenuModulo modulo = new JsonEntradaMenuModulo();
 					if (listaModulos != null) {
 						for (ConfiguracionJson configuracionJson : listaModulos) {
 							http.crearUrlModulo(configuracionJson, nombre, rutaSistema);
@@ -198,14 +200,14 @@ public class GuardadoRutas implements Serializable {
 					modulo.setRandomHexa();
 					modulo.setDescripcion(nombre);
 					modulo.setGoTo("/" + nombre);
-					modulo.setRutaImagen(WebJson.getRutaHttpImagenDescarga());
+					modulo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagenDescarga());
 					webArchivo.addModulo(modulo);
-					Clepnid_WebJson.config.addWeb(webArchivo);
+					JsonModulosMenuWeb.config.addWeb(webArchivo);
 				}
 
 			}
 		}
-		http.crearUrlIndice(Clepnid_WebJson.config);
+		http.crearUrlIndice(JsonModulosMenuWeb.config);
 	}
 
 	public static void serializar(GuardadoRutas guardado) throws IOException {

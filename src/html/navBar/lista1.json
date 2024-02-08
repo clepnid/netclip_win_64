@@ -1,0 +1,33 @@
+[{"logoImagen":"/navBar/clipboard.gif",
+"content": [
+{
+	"title": "Menú Principal",
+	"group": "",
+	"image": "/navBar/home_icon.png",
+	"goTo": "/menu"
+},{
+	"title": "Cerrar Sesión",
+	"group": "New",
+	"image": "/navBar/user.png",
+	"goTo": "/login/clear"
+},{
+	"title": "Cpu Memoria",
+	"group": "New",
+	"image": "https://cdn-icons-png.flaticon.com/512/8053/8053573.png",
+	"goTo": "/system_info_python/index.html"
+},{
+	"title": "Pantalla Remota",
+	"group": "New",
+	"image": "https://static.vecteezy.com/system/resources/thumbnails/000/331/028/small/9_-_3_-_Screen_II.jpg",
+	"goTo": "/videoCallClient/index.html"
+},{
+	"title": "Controlar Pc",
+	"group": "New",
+	"image": "https://static.vecteezy.com/system/resources/thumbnails/000/331/028/small/9_-_3_-_Screen_II.jpg",
+	"goTo": "/videoCallClientControl/index.html"
+},{
+	"title": "Compartir Pantalla",
+	"group": "New",
+	"image": "https://static.vecteezy.com/system/resources/thumbnails/000/331/028/small/9_-_3_-_Screen_II.jpg",
+	"goTo": "/videoCallServer/index.html"
+}]}]

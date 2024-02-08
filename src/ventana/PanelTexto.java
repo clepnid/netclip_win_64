@@ -43,8 +43,8 @@ public class PanelTexto extends PanelContenido {
 	 * @param texto   {@link String} con el texto a mostrar por pantalla.
 	 */
 
-	public PanelTexto(Composite parent, Ventana ventana, int style, String texto) {
-		super(parent, style, ventana);
+	public PanelTexto(Composite parent, int style, String texto) {
+		super(parent, style);
 		setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		setLayout(new GridLayout(3, false));
 		gd_panObjeto = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
@@ -89,7 +89,7 @@ public class PanelTexto extends PanelContenido {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					ventana.teclas.eventos.copiarContenidoBtn();
+					Ventana.getInstance().teclas.eventos.copiarContenidoBtn();
 					break;
 				}
 			}
@@ -105,6 +105,7 @@ public class PanelTexto extends PanelContenido {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
+					Ventana ventana = Ventana.getInstance();
 					ventana.crearVentanaQR(ventana.shlSwt, "");
 					break;
 				}

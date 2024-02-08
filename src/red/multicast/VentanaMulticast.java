@@ -62,7 +62,7 @@ public class VentanaMulticast {
 				cambioServidor.close();
 			}
 		});
-		cambioServidor = new MulticastControl(null);
+		cambioServidor = MulticastControl.getInstance();
 		cambioServidor.start();
 
 		Composite composite = new Composite(shell, SWT.NONE);

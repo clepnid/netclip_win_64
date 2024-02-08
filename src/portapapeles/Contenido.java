@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import http.ClepnidJson;
+import http.JsonModulosFicheros;
 import http.ConfiguracionJson;
 import ventana.Ventana;
 
@@ -85,7 +85,7 @@ public class Contenido implements Serializable {
 		this.id = (int) ((99999999 * Math.random() + 1));
 		this.listaModulos = new ArrayList<ArrayList<ConfiguracionJson>>();
 		for (String[] strings : listaFicheros) {
-			this.listaModulos.add(ClepnidJson.obtenerConfiguraciones(Ficheros.getExtensionFichero(strings[0])));
+			this.listaModulos.add(JsonModulosFicheros.obtenerConfiguraciones(Ficheros.getExtensionFichero(strings[0])));
 		}
 	}
 

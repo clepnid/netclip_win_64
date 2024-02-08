@@ -11,20 +11,25 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import historial.ListaHistorial;
 import historial.VentanaListaHistorial;
 import http.CerrarTunelWindows;
-import http.ClepnidJson;
-import http.Clepnid_WebJson;
+import http.JsonModulosFicheros;
+import http.JsonModulosMenuWeb;
 import http.ConfiguracionJson;
 import http.CrearQR;
 import http.CrearTunel;
 import http.Http;
+import http.HttpTorrent;
 import http.OpcionesModulosHttp;
-import http.WebJson;
+import http.modulosBackend.EjecutarComando;
+import http.JsonEntradaMenuModulo;
 import idioma.Idioma;
 import portapapeles.Contenido;
 import portapapeles.Ficheros;
 import red.compartirContenido.Cliente;
 import red.multicast.MulticastControl;
 import teclado.GlobalKeys;
+import usuarios.ListaAcesoGrupos;
+import usuarios.SistemaUsuarios;
+import ventanaGestionarModulo.SistemaModulos;
 
 import java.awt.AWTException;
 import java.awt.SystemTray;
@@ -33,6 +38,7 @@ import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
@@ -77,12 +83,14 @@ import org.eclipse.swt.graphics.Rectangle;
 
 public class Ventana {
 
+	private static Ventana INSTANCE;
+	public final static String OS = "WINDOWS";
 	public static Idioma idioma;
 	public Display display;
 	public Shell shlSwt;
 	protected ProgressBar BarraProgreso;
 	protected Label lblPorcentajeBarraProgreso;
-	public static Http http;
+	public Http http;
 	public BarraProgreso panBarraProgreso;
 	public PanelTexto bloque1;
 	public PanelFichero bloque3;
@@ -120,18 +128,18 @@ public class Ventana {
 				switch (contenido.tipo) {
 				case Html:
 					vaciarLista();
-					anyadirPanelHtml(panCuerpo, this);
+					anyadirPanelHtml(panCuerpo);
 					this.contenido = contenido;
 					return true;
 				case Texto:
 					vaciarLista();
-					anyadirPanelTexto(panCuerpo, this, contenido.texto);
+					anyadirPanelTexto(panCuerpo, contenido.texto);
 					this.contenido = contenido;
 					return true;
 				case Ficheros:
 					vaciarLista();
 					for (int i = 0; i < contenido.listaFicheros.size(); i++) {
-						anyadirPanelFichero(panCuerpo, this, contenido.listaFicheros.get(i)[0],
+						anyadirPanelFichero(panCuerpo, contenido.listaFicheros.get(i)[0],
 								contenido.listaFicheros.get(i)[1], contenido.listaFicheros.get(i)[2],
 								contenido.listaFicheros.get(i)[3], i, contenido.getListaModulos().get(i));
 					}
@@ -146,6 +154,7 @@ public class Ventana {
 		return false;
 	}
 
+	// anyade en http un elemento fichero
 	private void httpAnyadirArchivos(Contenido contenido) {
 		String extension, nombre;
 		boolean yaIntroducido;
@@ -171,18 +180,19 @@ public class Ventana {
 				}
 			}
 			boolean esCorrecto = OpcionesModulosHttp.esCorrecto(new File(contenido.listaFicheros.get(i)[4]));
-			
-			if (!yaIntroducido && Clepnid_WebJson.config != null && esCorrecto) {
+
+			if (!yaIntroducido && JsonModulosMenuWeb.config != null && esCorrecto) {
 				System.out.println("hola");
-				WebJson webArchivo = new WebJson();
+				JsonEntradaMenuModulo webArchivo = new JsonEntradaMenuModulo();
 				webArchivo.setArchivo();
 				webArchivo.setRandomHexa();
 				webArchivo.setTitulo(contenido.listaFicheros.get(i)[0]);
 				webArchivo.setDescripcion("." + extension);
-				webArchivo.setGoTo(Clepnid_WebJson.config.getRutaHttp() + "/" + nombre);
-				webArchivo.setRutaImagen(WebJson.getRutaHttpImagen(nombre));
-				ArrayList<ConfiguracionJson> listaModulos = ClepnidJson.obtenerConfiguraciones(extension);
-				WebJson modulo = new WebJson();
+				webArchivo.setGoTo(JsonModulosMenuWeb.config.getRutaHttp() + "/" + nombre);
+				System.out.println("Ventana");
+				webArchivo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagen(nombre));
+				ArrayList<ConfiguracionJson> listaModulos = JsonModulosFicheros.obtenerConfiguraciones(extension);
+				JsonEntradaMenuModulo modulo = new JsonEntradaMenuModulo();
 				if (listaModulos != null) {
 					for (ConfiguracionJson configuracionJson : listaModulos) {
 						http.crearUrlModulo(configuracionJson, nombre, contenido.listaFicheros.get(i)[4]);
@@ -201,13 +211,13 @@ public class Ventana {
 				modulo.setRandomHexa();
 				modulo.setDescripcion(nombre);
 				modulo.setGoTo("/" + nombre);
-				modulo.setRutaImagen(WebJson.getRutaHttpImagenDescarga());
+				modulo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagenDescarga());
 				webArchivo.addModulo(modulo);
-				Clepnid_WebJson.config.addWeb(webArchivo);
+				JsonModulosMenuWeb.config.addWeb(webArchivo);
 			}
 		}
-		if (Clepnid_WebJson.config != null) {
-			http.crearUrlIndice(Clepnid_WebJson.config);
+		if (JsonModulosMenuWeb.config != null) {
+			http.crearUrlIndice(JsonModulosMenuWeb.config);
 		}
 	}
 
@@ -242,8 +252,16 @@ public class Ventana {
 	 * {@link MulticastCambioServidor}, {@link GlobalKeys}.
 	 */
 
-	public Ventana() {
+	private Ventana() {
 		idioma = new Idioma();
+	}
+
+	public static synchronized Ventana getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new Ventana();
+		}
+
+		return INSTANCE;
 	}
 
 	/**
@@ -337,6 +355,8 @@ public class Ventana {
 		});
 		lblBotonServidorImage = SWTResourceManager.getImage(Ventana.class, "/imagenes/btn_on.gif");
 		multicastControl.compartirLista(this);
+		DragAndDrop.establecer(this);
+
 		while (!shlSwt.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -356,19 +376,22 @@ public class Ventana {
 			Ventana.main(null);
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		Configuracion.controlarExistencia();
 		ListaHistorial.controlarExistencia();
-		Ventana ventana = new Ventana();
-		MulticastControl controlMulticast = new MulticastControl(ventana);
+		SistemaUsuarios.controlarExistencia();
+		SistemaModulos.controlarExistencia();
+		ListaAcesoGrupos.controlarExistencia();
+		Ventana ventana = Ventana.getInstance();
+		MulticastControl controlMulticast = MulticastControl.getInstance();
 		controlMulticast.start();
-		GlobalKeys teclas = new GlobalKeys(ventana);
-		http = new Http();
+		GlobalKeys teclas = GlobalKeys.getInstance();
+		ventana.http = Http.getInstance();
 		ventana.teclas = teclas;
 		ventana.multicastControl = controlMulticast;
 		try {
-			ventana.clienteEnviar = new red.enviar.Cliente(ventana, ventana.multicastControl);
+			ventana.clienteEnviar = red.enviar.Cliente.getInstance();
 			ventana.clienteEnviar.start();
 		} catch (ClassNotFoundException e1) {
 			// TODO Auto-generated catch block
@@ -387,18 +410,27 @@ public class Ventana {
 	 */
 
 	public void cerrar() {
+		EjecutarComando.cerrar();
+		http.getJsonModulosBackend().cerrar();
 		cerrarTunelLocalhost();
 		teclas.cerrar();
 		http.close();
 		multicastControl.close();
 		clienteEnviar.close();
 		shlSwt.dispose();
-		
+		HttpTorrent.getInstance().close();
+
 		if (!reiniciar) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			System.exit(0);
 		}
 	}
-	
+
 	private void cerrarTunelLocalhost() {
 		CerrarTunelWindows cerrarTunel = new CerrarTunelWindows();
 		cerrarTunel.start();
@@ -787,10 +819,10 @@ public class Ventana {
 	 * @param texto   {@link String} a mostrar por {@link Ventana}.
 	 */
 
-	public void anyadirPanelTexto(Composite parent, Ventana ventana, String texto) {
+	public void anyadirPanelTexto(Composite parent, String texto) {
 		display.asyncExec(new Runnable() {
 			public void run() {
-				listaContenido.add(new PanelTexto(parent, ventana, SWT.NONE, texto));
+				listaContenido.add(new PanelTexto(parent, SWT.NONE, texto));
 				c2.setMinSize(panCuerpo.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 				panCuerpo.layout();
 			}
@@ -817,10 +849,10 @@ public class Ventana {
 	 * @param ventana {@link Ventana} para mostrar por pantalla el componente.
 	 */
 
-	public void anyadirPanelHtml(Composite parent, Ventana ventana) {
+	public void anyadirPanelHtml(Composite parent) {
 		display.asyncExec(new Runnable() {
 			public void run() {
-				listaContenido.add(new PanelHtml(parent, ventana, SWT.NONE));
+				listaContenido.add(new PanelHtml(parent, SWT.NONE));
 				c2.setMinSize(panCuerpo.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 				panCuerpo.layout();
 			}
@@ -839,12 +871,11 @@ public class Ventana {
 	 * @param numero  numero posición de la lista contenido.
 	 */
 
-	public void anyadirPanelFichero(Composite parent, Ventana ventana, String nombre, String peso, String formato,
-			String ruta, int numero, ArrayList<ConfiguracionJson> modulos) {
+	public void anyadirPanelFichero(Composite parent, String nombre, String peso, String formato, String ruta,
+			int numero, ArrayList<ConfiguracionJson> modulos) {
 		display.asyncExec(new Runnable() {
 			public void run() {
-				listaContenido
-						.add(new PanelFichero(parent, ventana, SWT.NONE, nombre, peso, formato, ruta, numero, modulos));
+				listaContenido.add(new PanelFichero(parent, SWT.NONE, nombre, peso, formato, ruta, numero, modulos));
 				c2.setMinSize(panCuerpo.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 				panCuerpo.layout();
 			}
@@ -938,8 +969,8 @@ public class Ventana {
 		reiniciar = true;
 		cerrar();
 	}
-	
-	//muestra las opciones de Configuracion de la aplicacion
+
+	// muestra las opciones de Configuracion de la aplicacion
 
 	public Shell crearVentanaConfiguracion(Shell parent) {
 		Shell hijo = new Shell(parent, SWT.RESIZE | SWT.CLOSE);
@@ -1031,7 +1062,7 @@ public class Ventana {
 		idiomas.setTouchEnabled(false);
 
 		GridData grid_Restriccion = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
-		
+
 		Label lblRestringirTamanyo = new Label(composite_principal, SWT.NONE);
 		lblRestringirTamanyo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblRestringirTamanyo.setText("Restringir subida de ficheros a:");
@@ -1044,13 +1075,12 @@ public class Ventana {
 		medidaTamanyo.setEnabled(false);
 		medidaTamanyo.setTouchEnabled(false);
 		medidaTamanyo.setLayoutData(grid_Restriccion);
-		
-		Text text_NumeroRestringirTamanyo= new Text(composite_principal, SWT.BORDER);
+
+		Text text_NumeroRestringirTamanyo = new Text(composite_principal, SWT.BORDER);
 		text_NumeroRestringirTamanyo.setEnabled(false);
 		text_NumeroRestringirTamanyo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		text_NumeroRestringirTamanyo.setEditable(false);
 		text_NumeroRestringirTamanyo.setLayoutData(grid_Restriccion);
-
 
 		Composite composite_btn = new Composite(hijo, SWT.NONE);
 		composite_btn.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -1099,7 +1129,7 @@ public class Ventana {
 			if (config.filesizemedida != null) {
 				medidaTamanyo.setText(config.filesizemedida.toString());
 				text_NumeroRestringirTamanyo.setText(String.valueOf(config.filesizenumber));
-			}else {
+			} else {
 				medidaTamanyo.setText("None");
 			}
 		} catch (ClassNotFoundException | IOException e2) {
@@ -1128,7 +1158,7 @@ public class Ventana {
 					if (!text_Carpeta.getText().equals(configAux.carpeta)) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!btnRecibirAutomaticamenteCheckButton.getSelection()==configAux.isAutomatic) {
+					if (!btnRecibirAutomaticamenteCheckButton.getSelection() == configAux.isAutomatic) {
 						abrirVentanaReiniciar = true;
 					}
 					if (!text_FicheroRutasInicio.getText().equals(configAux.rutaGuardadoHttp)) {
@@ -1137,23 +1167,24 @@ public class Ventana {
 					if (!idioma_items[idiomas.getSelectionIndex()].equals(configAux.idioma)) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!OpcionesModulosHttp.FileSizeMedida.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()]).equals(configAux.filesizemedida)) {
+					if (!OpcionesModulosHttp.FileSizeMedida
+							.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()])
+							.equals(configAux.filesizemedida)) {
 						abrirVentanaReiniciar = true;
 					}
 					int filesizenumber;
-					try{
-			            filesizenumber = Integer.parseInt(text_NumeroRestringirTamanyo.getText());
-			        }
-			        catch (NumberFormatException ex){
-			        	filesizenumber = 0;
-			        }
-					if (filesizenumber!=configAux.filesizenumber) {
+					try {
+						filesizenumber = Integer.parseInt(text_NumeroRestringirTamanyo.getText());
+					} catch (NumberFormatException ex) {
+						filesizenumber = 0;
+					}
+					if (filesizenumber != configAux.filesizenumber) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!btnRutasInicioCheckButton.getSelection()==configAux.inicializarRutas) {
+					if (!btnRutasInicioCheckButton.getSelection() == configAux.inicializarRutas) {
 						abrirVentanaReiniciar = true;
 					}
-					if (!btnRecibirEnviosCheckButton.getSelection()==configAux.recibirEnvios) {
+					if (!btnRecibirEnviosCheckButton.getSelection() == configAux.recibirEnvios) {
 						abrirVentanaReiniciar = true;
 					}
 					config = new Configuracion(text_Nombre.getText(), text_Carpeta.getText(),
@@ -1165,9 +1196,10 @@ public class Ventana {
 					config.inicializarRutas = btnRutasInicioCheckButton.getSelection();
 					config.recibirEnvios = btnRecibirEnviosCheckButton.getSelection();
 					config.idioma = idioma_items[idiomas.getSelectionIndex()];
-					config.filesizemedida = OpcionesModulosHttp.FileSizeMedida.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()]);
+					config.filesizemedida = OpcionesModulosHttp.FileSizeMedida
+							.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()]);
 					config.filesizenumber = filesizenumber;
-					
+
 					try {
 						Configuracion.serializar(config);
 					} catch (IOException e1) {
@@ -1207,7 +1239,7 @@ public class Ventana {
 						if (messageBox.open() == SWT.YES) {
 							// llamamos el metodo cerrar de la aplicacion para cerrar los demas hilos.
 							reiniciar();
-						} 
+						}
 					}
 
 				} else {
@@ -1218,7 +1250,7 @@ public class Ventana {
 
 					// si no se ha cargado la configuracion del menu no se podrá realizar esta
 					// accion
-					if (Clepnid_WebJson.config != null) {
+					if (JsonModulosMenuWeb.config != null) {
 						text_FicheroRutasInicio.setEnabled(true);
 						text_FicheroRutasInicio.setEditable(true);
 						btnRutasInicioCheckButton.setEnabled(true);
@@ -1416,8 +1448,8 @@ public class Ventana {
 			vaciarLista();
 			contenido = null;
 			multicastControl.cliente.pararServidor();
-			http.vaciarUrls();
-			http.textoDefecto();
+			// http.vaciarUrls();
+			// http.textoDefecto();
 			CrearTunel.salir = true;
 		}
 	}
@@ -1429,5 +1461,4 @@ public class Ventana {
 	public void setMenuBar(MenuBar menuBar) {
 		this.menuBar = menuBar;
 	}
-
 }

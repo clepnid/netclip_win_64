@@ -191,6 +191,9 @@ public class ClienteComando extends Thread {
 							if (!multicastControl.ventana.panBarraProgreso.nombre.contentEquals(outFile.getName())) {
 								multicastControl.ventana.panBarraProgreso.setNombre(outFile.getName());
 							}
+							if (rw != null) {
+								rw.close();
+							}
 							rw = new RandomAccessFile(ruta + fileName, "rw");
 							dout.write(CreateDataPacket("125".getBytes("UTF8"),
 									String.valueOf(current_file_pointer).getBytes("UTF8")));

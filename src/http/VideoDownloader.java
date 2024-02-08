@@ -10,6 +10,12 @@ import portapapeles.Ficheros;
 import ventana.Configuracion;
 import ventana.Ventana;
 
+/**
+ * clase de hilo que procesa comandos y luego crea los diferentes elementos
+ * @author pavon
+ *
+ */
+
 public class VideoDownloader extends Thread {
 	
 	public enum Tipo {
@@ -63,31 +69,30 @@ public class VideoDownloader extends Thread {
 				boolean yaIntroducido;
 				if (Ficheros.tipoFichero(fileToUp).equals("video")) {
 					nombre = Http.encodeURIcomponent(fileToUp);
-					yaIntroducido = Ventana.http.estaEnUrl(nombre);
+					yaIntroducido = Ventana.getInstance().http.estaEnUrl(nombre);
 					extension = Ficheros.getExtensionFichero(nombre);
-					Ventana.http.crearUrlVideo(nombre,
+					Ventana.getInstance().http.crearUrlVideo(nombre,
 							Configuracion.deserializar().carpeta + File.separator + fileToUp);
 				} else {
 					nombre = Http.encodeURIcomponent(fileToUp);
-					yaIntroducido = Ventana.http.estaEnUrl(nombre);
+					yaIntroducido = Ventana.getInstance().http.estaEnUrl(nombre);
 					extension = Ficheros.getExtensionFichero(nombre);
-					Ventana.http.crearUrlArchivo(nombre,
+					Ventana.getInstance().http.crearUrlArchivo(nombre,
 							Configuracion.deserializar().carpeta + File.separator + fileToUp);
 				}
-				boolean esCorrecto = OpcionesModulosHttp.esCorrecto(new File(Configuracion.deserializar().carpeta + File.separator + fileToUp));
-				if (!yaIntroducido && Clepnid_WebJson.config != null && esCorrecto) {
-					WebJson webArchivo = new WebJson();
+				if (!yaIntroducido && JsonModulosMenuWeb.config != null) {
+					JsonEntradaMenuModulo webArchivo = new JsonEntradaMenuModulo();
 					webArchivo.setArchivo();
 					webArchivo.setRandomHexa();
 					webArchivo.setTitulo(fileToUp);
 					webArchivo.setDescripcion("." + extension);
-					webArchivo.setGoTo(Clepnid_WebJson.config.getRutaHttp() + "/" + nombre);
-					webArchivo.setRutaImagen(WebJson.getRutaHttpImagen(nombre));
-					ArrayList<ConfiguracionJson> listaModulos = ClepnidJson.obtenerConfiguraciones(extension);
-					WebJson modulo = new WebJson();
+					webArchivo.setGoTo(JsonModulosMenuWeb.config.getRutaHttp() + "/" + nombre);
+					webArchivo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagen(nombre));
+					ArrayList<ConfiguracionJson> listaModulos = JsonModulosFicheros.obtenerConfiguraciones(extension);
+					JsonEntradaMenuModulo modulo = new JsonEntradaMenuModulo();
 					if (listaModulos != null) {
 						for (ConfiguracionJson configuracionJson : listaModulos) {
-							Ventana.http.crearUrlModulo(configuracionJson, nombre, Configuracion.deserializar().carpeta + File.separator + fileToUp);
+							Ventana.getInstance().http.crearUrlModulo(configuracionJson, nombre, Configuracion.deserializar().carpeta + File.separator + fileToUp);
 							// anyadir modulo en website
 							modulo.setTitulo(configuracionJson.getTitulo());
 							modulo.setRandomHexa();
@@ -103,13 +108,13 @@ public class VideoDownloader extends Thread {
 					modulo.setRandomHexa();
 					modulo.setDescripcion(nombre);
 					modulo.setGoTo("/" + nombre);
-					modulo.setRutaImagen(WebJson.getRutaHttpImagenDescarga());
+					modulo.setRutaImagen(JsonEntradaMenuModulo.getRutaHttpImagenDescarga());
 					webArchivo.addModulo(modulo);
-					Clepnid_WebJson.config.addWeb(webArchivo);
+					JsonModulosMenuWeb.config.addWeb(webArchivo);
 				}
 
-				if (Clepnid_WebJson.config != null) {
-					Ventana.http.crearUrlIndice(Clepnid_WebJson.config);
+				if (JsonModulosMenuWeb.config != null) {
+					Ventana.getInstance().http.crearUrlIndice(JsonModulosMenuWeb.config);
 				}
 			}
 			

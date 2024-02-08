@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.Display;
 public class PanelContenido extends Composite {
 
 	public GridData gd_panObjeto;
-	public Ventana ventana;
 	private String nombre;
 
 	/**
@@ -29,9 +28,8 @@ public class PanelContenido extends Composite {
 	 * @param ventana {@link Ventana} para mostrar por pantalla el componente.
 	 */
 
-	public PanelContenido(Composite parent, int style, Ventana ventana) {
+	public PanelContenido(Composite parent, int style) {
 		super(parent, style);
-		this.ventana = ventana;
 	}
 
 	/**

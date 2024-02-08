@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 //esta clase se manda como contenido para los paneles visualizados en la ventana.
-public class ConfiguracionJson implements Cloneable, Serializable  {
+public class ConfiguracionJson implements Cloneable, Serializable {
 	/**
 	 * 
 	 */
@@ -12,6 +12,15 @@ public class ConfiguracionJson implements Cloneable, Serializable  {
 	private String titulo, textoBoton, htmlReemplazoBody, html, rutaHttp, rutaImagen;
 	private boolean grupo;
 	private ArrayList<String> extensiones;
+	private JsonModulosGrupos rutasJson;
+
+	public JsonModulosGrupos getRutasJson() {
+		return rutasJson;
+	}
+
+	public void setRutasJson(JsonModulosGrupos rutasJson) {
+		this.rutasJson = rutasJson;
+	}
 
 	public ConfiguracionJson() {
 		setTitulo("");
@@ -20,6 +29,7 @@ public class ConfiguracionJson implements Cloneable, Serializable  {
 		setHtml("");
 		setRutaHttp("");
 		setRutaImagen("");
+		setRutasJson(new JsonModulosGrupos(""));
 		setGrupo(false);
 		this.extensiones = new ArrayList<String>();
 	}
@@ -32,39 +42,32 @@ public class ConfiguracionJson implements Cloneable, Serializable  {
 		setRutaImagen(jsonAux.getRutaImagen());
 		setGrupo(jsonAux.isGrupo());
 		setRutaHttp(jsonAux.getRutaHttp());
+		setRutasJson(jsonAux.getRutasJson());
 		this.extensiones = new ArrayList<String>();
 		for (String ext : jsonAux.extensiones) {
 			extensiones.add(ext);
 		}
 	}
-	
+
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		// TODO Auto-generated method stub
 		return new ConfiguracionJson(this);
 	}
 
-	
 	@Override
 	public String toString() {
-		String ext ="";
+		String ext = "";
 		for (String ex : extensiones) {
-			ext = ext + ", "+ ex;
+			ext = ext + ", " + ex;
 		}
 		String grupal = "";
-		if (this.grupo) 
+		if (this.grupo)
 			grupal = "Es un modulo colectivo";
 		else
 			grupal = "No es un modulo colectivo";
-		return   "Modulo:\n"
-				+ "    "+this.titulo+"\n"
-				+ "Extensiones:\n"
-				+ "    "+ext+"\n"
-				+ "Texto boton:\n"
-				+ "    "+this.textoBoton+"\n"
-		        + grupal+"\n"
-				+ "Html:\n"
-				+ "    "+this.html+"\n";
+		return "Modulo:\n" + "    " + this.titulo + "\n" + "Extensiones:\n" + "    " + ext + "\n" + "Texto boton:\n"
+				+ "    " + this.textoBoton + "\n" + grupal + "\n" + "Html:\n" + "    " + this.html + "\n";
 	}
 
 	public String getTextoBoton() {

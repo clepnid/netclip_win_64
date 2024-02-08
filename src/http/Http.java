@@ -1,34 +1,145 @@
 package http;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import java.awt.AWTException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.zip.CRC32;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.springframework.http.MediaType;
-
-import portapapeles.Ficheros;
+import http.modulosBackend.JsonModulosBackend;
+import spark.Filter;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 import ventana.Configuracion;
-import ventana.Ventana;
 
 public class Http {
-	private static int MAX_READ_SIZE = 1024;
+
+	public class RequestLimitFilter implements Filter {
+		private class ResetVariableTask extends TimerTask {
+			private int comportamiento; // si comportamiento != 2 restara 1 al contador, si comportamiento es 2 pondra a
+										// 0 contador
+			private RequestLimitFilter l;
+			private String ip;
+
+			public ResetVariableTask(RequestLimitFilter l, String ip, int comportamiento) {
+				this.comportamiento = comportamiento;
+				this.ip = ip;
+				this.l = l;
+			}
+
+			public void run() {
+				if (comportamiento == 2) {
+					l.getIpRequestCount().put(ip, 0);
+				} else {
+					int cont = l.getIpRequestCount().get(ip);
+					if (cont > 10) {
+						l.getIpRequestCount().put(ip, cont - 10);
+					}
+				}
+				int index = l.getIpRequestTimer().indexOf(ip);
+				if (index != -1) {
+					l.getIpRequestTimer().remove(index);
+				}
+			}
+		}
+
+		private int MAX_REQUEST_SIZE;
+		private int MAX_REQUEST_COUNT;
+		private Map<String, Integer> ipRequestCount;
+		private ArrayList<String> ipRequestTimer;
+		Timer timer;
+
+		public RequestLimitFilter() {
+			// TODO Auto-generated constructor stub
+			this.setIpRequestCount(new HashMap<>());
+			this.setIpRequestTimer(new ArrayList<String>());
+			MAX_REQUEST_COUNT = 100;// 1000 VECES
+			MAX_REQUEST_SIZE = 1024 * 1024;// 1 MB
+			timer = new Timer();
+		}
+
+		public RequestLimitFilter(int requestCount, int requestSize) {
+			// TODO Auto-generated constructor stub
+			this.setIpRequestCount(new HashMap<>());
+			this.setIpRequestTimer(new ArrayList<String>());
+			MAX_REQUEST_COUNT = requestCount;
+			MAX_REQUEST_SIZE = requestSize;
+			timer = new Timer();
+		}
+
+		@Override
+		public void handle(Request request, Response response) throws Exception {
+			String ipAddress = request.ip();
+			if (isRequestLengthValid(request)) {
+				Spark.halt(413, "Solicitud demasiado grande");
+				return;
+			}
+			if (isRequestCountValid(ipAddress)) { // limita a un máximo de solicitudes por IP
+				crearIpRequestCountTimer(ipAddress, 2, 30 * 60 * 1000); // crea un timer con el que se pondra a 0 el
+																		// contador de dicha ip en media hora
+				Spark.halt(429, "Demasiadas peticiones de esta IP");
+				return;
+			}
+
+		}
+
+		public int getIpRequestCount(String ipAddress) {
+			if (!getIpRequestCount().containsKey(ipAddress)) {
+				getIpRequestCount().put(ipAddress, 0);
+			}
+			int count = getIpRequestCount().get(ipAddress);
+			crearIpRequestCountTimer(ipAddress, 1, 100); // restar 10 al contador
+			count++;
+			getIpRequestCount().put(ipAddress, count);
+			System.out.println("CONTADOR: " + count);
+			return count;
+		}
+
+		public void crearIpRequestCountTimer(String ipAddress, int modo, int milisegundos) {
+			if (!getIpRequestTimer().contains(ipAddress)) {
+				// Si no está, agregarlo al final de la lista
+				getIpRequestTimer().add(ipAddress);
+				timer.schedule(new ResetVariableTask(this, ipAddress, modo), milisegundos);
+			}
+		}
+
+		public boolean isRequestLengthValid(Request request) {
+			return request.contentLength() > MAX_REQUEST_SIZE;
+		}
+
+		public boolean isRequestCountValid(String ipAddress) {
+			return getIpRequestCount(ipAddress) >= MAX_REQUEST_COUNT;
+		}
+
+		public synchronized Map<String, Integer> getIpRequestCount() {
+			return ipRequestCount;
+		}
+
+		public void setIpRequestCount(Map<String, Integer> ipRequestCount) {
+			this.ipRequestCount = ipRequestCount;
+		}
+
+		public synchronized ArrayList<String> getIpRequestTimer() {
+			return ipRequestTimer;
+		}
+
+		public synchronized void setIpRequestTimer(ArrayList<String> ipRequestTimer) {
+			this.ipRequestTimer = ipRequestTimer;
+		}
+
+	}
+
+	private static Http INSTANCE;
+	public static int MAX_READ_SIZE = 1024;
 	private ArrayList<String> urlsParciales = new ArrayList<String>();
 	private ArrayList<String> urlsSistema = new ArrayList<String>();
 
@@ -51,28 +162,42 @@ public class Http {
 	private final static int PUERTOHTTP = 3000;
 	private String texto = null, rutaVideo = null;
 	private static String textoHTML = null;
+	private JsonModulosBackend jsonModulosBackend;
 
-	public Http() {
+	public JsonModulosBackend getJsonModulosBackend() {
+		return jsonModulosBackend;
+	}
+
+	public static Http getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new Http();
+		}
+
+		return INSTANCE;
+	}
+
+	private Http() {
 		texto = TEXTODEFECTO;
 		rutaVideo = RUTAVIDEODEFECTO;
 		textoHTML = TEXTOHTMLDEFECTO;
 		Spark.port(PUERTOHTTP);
 
-		Spark.get("/favicon.ico", (req, res) -> getFavicon(req, res, ".src/imagenes/clipboard.ico"));
 		Spark.get("/pagina.html", (req, res) -> renderHtml(req, res));
 		Spark.get("/", (req, res) -> {
 			return TEXTOPRIMERARUTA;
 		});
 
-		ClepnidJson.iniciar();
-		getCarpetaEstatica("", "./src/html");
+		this.jsonModulosBackend = new JsonModulosBackend();
+
+		JsonModulosFicheros.iniciar();
+		getCarpetaEstatica(this, "", "./src/html");
 		Spark.after("/index.html", (request, response) -> {
 			if (!texto.equals(TEXTODEFECTO)) {
 				String body = response.body();
 				response.body(body.replace(TEXTODEFECTO, texto));
 			}
 		});
-		for (ConfiguracionJson config : ClepnidJson.config) {
+		for (ConfiguracionJson config : JsonModulosFicheros.config) {
 			System.out.println(config);
 		}
 		Configuracion config = null;
@@ -87,7 +212,7 @@ public class Http {
 		// si no se ha cargado la configuracion del menu no se podrÃ¡ realizar esta
 		// acciÃ³n
 		if (config.inicializarRutas != null && config.rutaGuardadoHttp != null && !config.rutaGuardadoHttp.equals("")
-				&& Clepnid_WebJson.config != null) {
+				&& JsonModulosMenuWeb.config != null) {
 			try {
 				if (config.inicializarRutas) {
 					GuardadoRutas guardado = GuardadoRutas.deserializar();
@@ -99,105 +224,53 @@ public class Http {
 				System.out.print("");
 			}
 		}
-		if (Clepnid_WebJson.config != null) {
-			crearUrlIndice(Clepnid_WebJson.config);
+		if (JsonModulosMenuWeb.config != null) {
+			crearUrlIndice(JsonModulosMenuWeb.config);
 		}
 
 		Spark.unmap("/modulo_subir_ficheros/index.html");
 
-		Spark.get("/modulo_subir_ficheros/index.html",
-				(req, res) -> renderIndex(req, res, "./src/html/modulo_subir_ficheros/index.html"));
+		Spark.get("/modulo_subir_ficheros/index.html", (req, res) -> HttpBackend.renderIndex(req, res,
+				"./src/html/modulo_subir_ficheros/index.html", "/modulo_subir_ficheros/index.html"));
+
+		HttpBackendUsuarios.crearControlUsuarios();
+
+		Spark.notFound((req, res) -> HttpBackend.renderIndex(req, res, "./src/html/404/index.html", "/404/index.html"));
+		Spark.internalServerError(
+				(req, res) -> HttpBackend.renderIndex(req, res, "./src/html/500/index.html", "/500/index.html"));
+
+		// HttpBackend.initCorsffmpeg();
+		HttpBackend.enrutarDinamicamente("/servidorRtmp/ffmpegMonitorRecord/files");
+
+		try {
+			HttpBackendControladorTeclasRaton.getInstance();
+		} catch (AWTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// limitar antes las peticiones de Spark en la clase implementada en este mismo
+		Spark.before(new RequestLimitFilter());
+
+		HttpBackend.crearRespuestaNavbar();
+
+		// Crear pagina de herramientas /menuTools en el menu principal
+		HttpBackend.crearMenuTools();
+
+		// Crear torrent paginas
+		HttpTorrent httpTorrent = HttpTorrent.getInstance();
+		httpTorrent.inicializarRutaDownloadTorrent();
+		httpTorrent.inicializarRutaGetJsonTorrent();
+
+		Spark.after("/login-layout", (req, res) -> redirectLoginLayout(res));
+		
 
 	}
-
-	/**
-	 * Metodo principal para controlar el envio segun el tipo de fichero.
-	 * 
-	 * @param zipOpStream {@link ZipOutputStream} buffer para enviar fichero.
-	 * @param outFile     {@link File} fichero a controlar.
-	 */
-
-	public static void sendFileOutput(ZipOutputStream zipOpStream, File outFile) throws Exception {
-		String relativePath = outFile.getAbsoluteFile().getParentFile().getAbsolutePath();
-		outFile = outFile.getAbsoluteFile();
-		if (outFile.isDirectory()) {
-			sendFolder(zipOpStream, outFile, relativePath);
-		} else {
-			sendFile(zipOpStream, outFile, relativePath);
-		}
-	}
-
-	public void modificarHTML(String textoHtml) {
-		textoHTML = textoHtml;
-	}
-
-	/**
-	 * Envia los ficheros contenidos en la carpeta.
-	 * 
-	 * @param zipOpStream  {@link ZipOutputStream} buffer para enviar fichero.
-	 * @param folder       {@link File} carpeta.
-	 * @param relativePath {@link File} ruta relativa.
-	 */
-
-	public static void sendFolder(ZipOutputStream zipOpStream, File folder, String relativePath) throws Exception {
-		File[] filesList = folder.listFiles();
-		for (File file : filesList) {
-			if (file.isDirectory()) {
-				sendFolder(zipOpStream, file, relativePath);
-			} else {
-				sendFile(zipOpStream, file, relativePath);
-			}
-		}
-	}
-
-	/**
-	 * Envia fichero
-	 * 
-	 * @param zipOpStream  {@link ZipOutputStream} buffer para enviar fichero.
-	 * @param file         {@link File} carpeta.
-	 * @param relativePath {@link File} ruta relativa.
-	 */
-
-	public static void sendFile(ZipOutputStream zipOpStream, File file, String relativePath) throws Exception {
-		String absolutePath = file.getAbsolutePath();
-		String zipEntryFileName = absolutePath;
-		if (absolutePath.startsWith(relativePath)) {
-			zipEntryFileName = absolutePath.substring(relativePath.length());
-			if (zipEntryFileName.startsWith(File.separator)) {
-				zipEntryFileName = zipEntryFileName.substring(1);
-			}
-		} else {
-			throw new Exception("Invalid Absolute Path");
-		}
-
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-		byte[] fileByte = new byte[MAX_READ_SIZE];
-		int readBytes = 0;
-		CRC32 crc = new CRC32();
-		while (0 != (readBytes = bis.read(fileByte))) {
-			if (-1 == readBytes) {
-				break;
-			}
-			crc.update(fileByte, 0, readBytes);
-		}
-		bis.close();
-		ZipEntry zipEntry = new ZipEntry(zipEntryFileName);
-		zipEntry.setMethod(ZipEntry.STORED);
-		zipEntry.setCompressedSize(file.length());
-		zipEntry.setSize(file.length());
-		zipEntry.setCrc(crc.getValue());
-		zipOpStream.putNextEntry(zipEntry);
-		bis = new BufferedInputStream(new FileInputStream(file));
-
-		while (0 != (readBytes = bis.read(fileByte))) {
-			if (-1 == readBytes) {
-				break;
-			}
-
-			zipOpStream.write(fileByte, 0, readBytes);
-		}
-		bis.close();
-
+	
+	private static boolean redirectLoginLayout(Response res) {
+		System.out.println("redirect");
+		res.redirect("/login-layout/index.html");
+		return true;
 	}
 
 	public static int getPuertoHTTP() {
@@ -217,7 +290,7 @@ public class Http {
 		for (String urls : getUrlsParciales()) {
 			Spark.unmap("/" + urls);
 		}
-		Clepnid_WebJson.config.vaciarWeb();
+		JsonModulosMenuWeb.config.vaciarWeb();
 		setUrlsParciales(new ArrayList<String>());
 		setUrlsSistema(new ArrayList<String>());
 		setTipos(new ArrayList<Tipo>());
@@ -235,7 +308,7 @@ public class Http {
 		setTipos(tiposAux);
 
 		urlsParciales.remove(ruta);
-		Clepnid_WebJson.config.eliminarRuta(ruta);
+		JsonModulosMenuWeb.config.eliminarRuta(ruta);
 
 	}
 
@@ -250,14 +323,18 @@ public class Http {
 	public static void main(String[] args) {
 		Spark.port(PUERTOHTTP);
 		Spark.externalStaticFileLocation("/video/webfonts");
-		Spark.get("/hello", (req, res) -> getFile(req, res,
-				"C:\\\\Users\\\\pavon\\\\Desktop\\\\UNI\\\\MATIII_Prueba1_Antonio_Jesus_Pavon_Correa_1.jpeg"));
-		Spark.get("/index.html", (req, res) -> renderIndex(req, res));
+		// Spark.get("/hello", (req, res) -> HttpBackend.getFile(req,
+		// res,"C:\\\\Users\\\\pavon\\\\Desktop\\\\UNI\\\\MATIII_Prueba1_Antonio_Jesus_Pavon_Correa_1.jpeg"));
+		// Spark.get("/index.html", (req, res) -> HttpBackend.renderIndex(req, res));
 		Spark.get("/script.js", (req, res) -> renderJavaScript(req, res));
 		Spark.get("/", (req, res) -> {
 			res.raw().sendRedirect("/yourpage");
 			return 1;
 		});
+	}
+
+	public void modificarHTML(String textoHtml) {
+		textoHTML = textoHtml;
 	}
 
 	/* Convierte un string a algo que se puede insertar en una url */
@@ -284,48 +361,27 @@ public class Http {
 		return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
 	}
 
-	private static void getCarpetaEstatica(String rutaHttp, String rutaFichero) {
-		HttpCarpetaEstatica.get(rutaHttp, new File(rutaFichero).getAbsoluteFile());
+	private static void getCarpetaEstatica(Http http, String rutaHttp, String rutaFichero) {
+		RecorrerCarpetaArchivosEstaticosSpark.get(http, rutaHttp, new File(rutaFichero).getAbsoluteFile());
 	}
 
 	public void modificarUrlTexto(String texto) {
 		this.texto = texto;
 	}
 
-	public void crearUrlCarpeta(String nombreCarpeta, String rutaCarpeta) {
-		Spark.get("/" + nombreCarpeta, (req, res) -> getZip(req, res, rutaCarpeta));
+	public synchronized void crearUrlCarpeta(String nombreCarpeta, String rutaCarpeta) {
+		Spark.get("/" + nombreCarpeta, (req, res) -> HttpBackend.getZip(req, res, rutaCarpeta, "/" + nombreCarpeta));
 		anyadirUrlParcial(nombreCarpeta, rutaCarpeta, Tipo.Carpeta);
 	}
 
-	public void crearUrlArchivo(String nombreArchivo, String rutaArchivo) {
-		Spark.get("/" + nombreArchivo, (req, res) -> getFile(req, res, rutaArchivo));
+	public synchronized void crearUrlArchivo(String nombreArchivo, String rutaArchivo) {
+		Spark.get("/" + nombreArchivo, (req, res) -> HttpBackend.getFile(req, res, rutaArchivo, "/" + nombreArchivo));
 		anyadirUrlParcial(nombreArchivo, rutaArchivo, Tipo.Archivo);
 	}
 
-	// si es un archivo de musica debera cargarse como stream
-	public Boolean crearUrlMusicaStream(String nombreArchivo, String rutaArchivo) {
-		if (Ficheros.tipoFichero(nombreArchivo).equals(Ventana.idioma.get("tipo_fichero_audio"))
-				&& MusicPlayerComponent.getRutaModulo() != null) {
-			Spark.get("/clepnid_stream" + MusicPlayerComponent.getRutaModulo() + "/" + nombreArchivo, (req, res) -> {
-				File fichero = new File(rutaArchivo);
-				res.raw().setContentType("audio/mpeg");
-				res.type("audio/mpeg");
-				res.raw().setHeader("Content-Length", String.valueOf(fichero.length()));
-				try {
-					MediaType n = new MediaType("audio", "audio");
-					return MultipartFileMusicSender.writePartialContent(req.raw(), res.raw(), fichero, n);
-				} catch (IOException e) {
-					return res.raw();
-				}
-			});
-			MusicPlayerJson.anyadirMusica(nombreArchivo);
-			return true;
-		}
-		return false;
-	}
-
-	public void crearUrlVideo(String nombreArchivo, String rutaArchivo) {
-		Spark.get("/" + nombreArchivo, (req, res) -> getVideoStream(req, res, rutaArchivo));
+	public synchronized void crearUrlVideo(String nombreArchivo, String rutaArchivo) {
+		Spark.get("/" + nombreArchivo,
+				(req, res) -> HttpBackend.getVideoStream(req, res, rutaArchivo, "/" + nombreArchivo));
 		anyadirUrlParcial(nombreArchivo, rutaArchivo, Tipo.Video);
 	}
 
@@ -349,55 +405,57 @@ public class Http {
 
 	public void crearUrlModulo(ConfiguracionJson configuracionJson, String nombreArchivo, String rutaArchivo) {
 		String nombreArchivoAux = nombreArchivo;
-		Boolean musica = crearUrlMusicaStream(nombreArchivo, rutaArchivo);
+
+		// llamar a metodo clase para crear una entrada en los modulos de grupo
+		// tendra que introducir como parametros el nombreArchivo y rutaArchivo
+		// este metodo iterara en lista de modulos si son de grupos y si el archivo
+		// tiene extension de los de modulo de grupo creará una cacharro
+		// retornará true si tiene modulo de grupo
+		Boolean grupo = HttpBackend.crearUrlGrupo(configuracionJson, nombreArchivo, rutaArchivo);
 		String ruta = configuracionJson.getRutaHttp() + "/" + nombreArchivo;
-		Spark.get(ruta, (req, res) -> renderIndex(req, res, configuracionJson.getHtml()));
+		Spark.get(ruta, (req, res) -> HttpBackend.renderIndex(req, res, configuracionJson.getHtml(), ruta));
 
-		if (musica) {
-			Spark.after(ruta, (request, response) -> {
-				String body = response.body();
-				response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), MusicPlayerJson.getJson(nombreArchivo)));
-			});
+		if (grupo) {
+			System.out.println("holaaaaaaa   "
+					+ configuracionJson.getRutasJson().getJson(nombreArchivo, new File(ruta).getName()));
+			// esto sirve para introducirle en la pagina del modulo una lista json que
+			// empieza con el fichero
+			Spark.after(ruta,
+					(request, response) -> HttpBackend.reemplazarBodyModuloJson(request, response, configuracionJson,
+							configuracionJson.getRutasJson().getJson(nombreArchivo, new File(ruta).getName()), ruta));
 		} else {
-			Spark.after(ruta, (request, response) -> {
-				String body = response.body();
-				response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), "/" + nombreArchivoAux));
-			});
+			// reemplaza en el modulo de la pagina el body para meterle la ruta del fichero
+			Spark.after(ruta, (request, response) -> HttpBackend.reemplazarBodyModuloFichero(request, response,
+					configuracionJson, nombreArchivoAux, ruta));
+
 		}
 
 	}
 
-	public void crearUrlIndice(ConfiguracionWebJson configuracionJson) {
-		Spark.unmap(configuracionJson.getRutaHttp());
-		Spark.get(configuracionJson.getRutaHttp(), (req, res) -> renderIndex(req, res, configuracionJson.getHtml()));
-		for (WebJson web : configuracionJson.getWebs()) {
-			Spark.get(web.getGoTo(), (req, res) -> renderIndex(req, res, configuracionJson.getHtml()));
-			Spark.after(web.getGoTo(), (request, response) -> {
+	public synchronized void crearUrlIndice(ConfiguracionWebJson configuracionJson) {
+		synchronized (Spark.class) {
+			if (!Spark.unmap(configuracionJson.getRutaHttp())) {
+				return;
+			}
+			Spark.get(configuracionJson.getRutaHttp(), (req, res) -> HttpBackend.renderIndex(req, res,
+					configuracionJson.getHtml(), configuracionJson.getRutaHttp()));
+			for (JsonEntradaMenuModulo web : configuracionJson.getWebs()) {
+				Spark.get(web.getGoTo(),
+						(req, res) -> HttpBackend.renderIndex(req, res, configuracionJson.getHtml(), web.getGoTo()));
+				Spark.after(web.getGoTo(), (request, response) -> HttpBackend.estilarMenuConWebJson(request, response,
+						configuracionJson, web, web.getGoTo()));
+			}
+			Spark.after(configuracionJson.getRutaHttp(), (request, response) -> {
 				String body = response.body();
-				response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), web.getJson()));
+				String json = configuracionJson.getJson(request, response);
+				try {
+					body = body.replace(configuracionJson.getHtmlReemplazoBody(), json);
+					response.body(body);
+				} catch (Exception e) {
+					response.redirect("/login/clear");
+				}
 			});
 		}
-		Spark.after(configuracionJson.getRutaHttp(), (request, response) -> {
-			String body = response.body();
-			String json = configuracionJson.getJson();
-			response.body(body.replace(configuracionJson.getHtmlReemplazoBody(), json));
-		});
-	}
-
-	public Object getVideoStream(Request request, Response response, String rutaFichero) {
-		Path path = Paths.get(rutaFichero);
-
-		File file = new File(rutaFichero);
-		response.raw().setContentType("video/mp4");
-		response.type("video/mp4");
-		response.raw().setHeader("Content-Length", String.valueOf(file.length()));
-		try {
-			MultipartFileVideoSender.fromPath(path).with(request.raw()).with(response.raw()).serveResource();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return response.raw();
 	}
 
 	public void textoDefecto() {
@@ -417,17 +475,6 @@ public class Http {
 
 	}
 
-	private static String renderIndex(Request request, Response responce) throws IOException, URISyntaxException {
-		Path path = Paths.get("./src/html/index.html");
-		return OpcionesModulosHttp.getHtml(new String(Files.readAllBytes(path), Charset.defaultCharset()));
-	}
-
-	public static String renderIndex(Request request, Response responce, String ruta)
-			throws IOException, URISyntaxException {
-		Path path = Paths.get(ruta);
-		return OpcionesModulosHttp.getHtml(new String(Files.readAllBytes(path), Charset.defaultCharset()));
-	}
-
 	private static String renderHtml(Request request, Response responce) throws IOException, URISyntaxException {
 		return textoHTML;
 	}
@@ -443,69 +490,6 @@ public class Http {
 		Path path = Paths.get("./src/html/style.css");
 
 		return new String(Files.readAllBytes(path), Charset.defaultCharset());
-	}
-
-	private static Object getZip(Request request, Response responce, String rutaCarpeta) {
-		File file = new File(rutaCarpeta);
-		responce.raw().setContentType("application/octet-stream");
-		responce.raw().setHeader("Content-Disposition", "attachment; filename=" + file.getName() + ".zip");
-		try (ZipOutputStream zipOutputStream = new ZipOutputStream(
-				new BufferedOutputStream(responce.raw().getOutputStream()))) {
-			sendFileOutput(zipOutputStream, file);
-			zipOutputStream.flush();
-			zipOutputStream.close();
-		} catch (Exception e) {
-			Spark.halt(405, "server error");
-		}
-		return responce.raw();
-	}
-
-	private static Object getFile(Request request, Response response, String rutaFichero) {
-		InputStream is;
-		try {
-			is = new FileInputStream(rutaFichero);
-
-		    response.raw().setHeader("Content-Disposition", "attachment; filename=\"" + new File(rutaFichero).getName() + "\"");
-
-
-		    int read=0;
-		    byte[] bytes = new byte[1024];
-		    OutputStream os = response.raw().getOutputStream();
-
-		    while((read = is.read(bytes))!= -1){
-		        os.write(bytes, 0, read);
-		    }
-		    os.flush();
-		    os.close(); 
-		} catch (FileNotFoundException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return response.raw();
-	}
-
-	private static Object getFavicon(Request request, Response response, String rutaFichero) {
-		Path path = Paths.get(rutaFichero);
-
-		byte[] data = null;
-		try {
-			data = Files.readAllBytes(path);
-		} catch (Exception e1) {
-			Spark.halt(405, "server error");
-		}
-
-		response.raw().setContentType("image/x-icon");
-		try {
-			response.raw().getOutputStream().write(data);
-			response.raw().getOutputStream().flush();
-			response.raw().getOutputStream().close();
-		} catch (Exception e) {
-			Spark.halt(405, "server error");
-		}
-		return response.raw();
 	}
 
 	public ArrayList<String> getUrlsParciales() {

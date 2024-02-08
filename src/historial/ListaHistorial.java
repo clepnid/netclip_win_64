@@ -54,7 +54,7 @@ public class ListaHistorial extends CopyOnWriteArrayList<Historial> implements S
 		return true;
 	}
 
-	public static ListaHistorial deserializar() throws IOException, ClassNotFoundException {
+	public static synchronized ListaHistorial deserializar() throws IOException, ClassNotFoundException {
 		ListaHistorial historial = new ListaHistorial();
 		FileInputStream archivo = new FileInputStream(ruta);
 		ObjectInputStream entrada = new ObjectInputStream(archivo);
@@ -280,7 +280,7 @@ public class ListaHistorial extends CopyOnWriteArrayList<Historial> implements S
 		return listaHistorial;
 	}
 
-	public static void serializar(ListaHistorial historial) throws IOException {
+	public static synchronized void serializar(ListaHistorial historial) throws IOException {
 		FileOutputStream archivo = new FileOutputStream(ruta);
 		ObjectOutputStream salida = new ObjectOutputStream(archivo);
 		salida.writeObject(historial);

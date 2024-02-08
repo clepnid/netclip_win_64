@@ -19,8 +19,9 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import http.ClepnidJson;
+import http.JsonModulosFicheros;
 import http.ConfiguracionJson;
+import http.Http;
 import portapapeles.Ficheros;
 import red.multicast.MulticastControl;
 
@@ -64,9 +65,9 @@ public class PanelFichero extends PanelContenido {
 	 * @param numero      numeración del componente a mostrar por pantalla.
 	 */
 
-	public PanelFichero(Composite parent, Ventana ventana, int style, String nombre, String pesoFichero, String formato,
+	public PanelFichero(Composite parent, int style, String nombre, String pesoFichero, String formato,
 			String ruta, int numero, ArrayList<ConfiguracionJson> modulos) {
-		super(parent, style, ventana);
+		super(parent, style);
 		this.setNombre(nombre);
 		this.parent = parent;
 		mostrarBotonEnviar = false;
@@ -130,7 +131,7 @@ public class PanelFichero extends PanelContenido {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					ventana.teclas.eventos.copiarContenidoFicheroBtn(numero);
+					Ventana.getInstance().teclas.eventos.copiarContenidoFicheroBtn(numero);
 					break;
 				}
 			}
@@ -146,19 +147,21 @@ public class PanelFichero extends PanelContenido {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					ventana.crearVentanaQR(ventana.shlSwt, nombre.replace(" ", ""));
+					Ventana ventana = Ventana.getInstance();
+					ventana.crearVentanaQR(ventana.shlSwt, Http.encodeURIcomponent(nombre));
 					break;
 				}
 			}
 		});
 
+		Ventana ventana = Ventana.getInstance();
 		if (ventana.multicastControl.soyServidor()) {
 			anyadirBtnEnviar();
 			String extension = Ficheros.getExtensionFichero(nombre);
-			ArrayList<ConfiguracionJson> listaModulos = ClepnidJson.obtenerConfiguraciones(extension);
+			ArrayList<ConfiguracionJson> listaModulos = JsonModulosFicheros.obtenerConfiguraciones(extension);
 
 			if (listaModulos != null) {
-				desplegable = TableComboDesplegable.getDesplegable(panBoton, nombre, listaModulos, ventana);
+				desplegable = TableComboDesplegable.getDesplegable(panBoton, Http.encodeURIcomponent(nombre), listaModulos, ventana);
 				desplegable.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 				desplegable.setToolTipText(Ventana.idioma.getProperty("fichero_lista_otrasOpciones"));
 				desplegable.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
@@ -166,7 +169,7 @@ public class PanelFichero extends PanelContenido {
 		} else {
 			if (modulos != null) {
 				// añadir al desplegable la informacion pasada por red
-				desplegable = TableComboDesplegable.getDesplegable(panBoton, nombre, modulos, ventana);
+				desplegable = TableComboDesplegable.getDesplegable(panBoton, Http.encodeURIcomponent(nombre), modulos, ventana);
 				desplegable.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 				desplegable.setToolTipText(Ventana.idioma.getProperty("fichero_lista_otrasOpciones"));
 				desplegable.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
@@ -211,6 +214,7 @@ public class PanelFichero extends PanelContenido {
 					list.setBounds(0, 0, 108, 28);
 
 					int numero_Aux = 0;
+					Ventana ventana = Ventana.getInstance();
 					for (String ip : ventana.multicastControl.escaner.listaIps.listaNombres) {
 						if (!ip.equals("")) {
 							numero_Aux = 0;
