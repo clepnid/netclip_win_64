@@ -384,14 +384,14 @@ public class Ventana {
 		SistemaModulos.controlarExistencia();
 		ListaAcesoGrupos.controlarExistencia();
 		Ventana ventana = Ventana.getInstance();
-		MulticastControl controlMulticast = MulticastControl.getInstance();
+		MulticastControl controlMulticast = new MulticastControl(ventana);
 		controlMulticast.start();
 		GlobalKeys teclas = GlobalKeys.getInstance();
 		ventana.http = Http.getInstance();
 		ventana.teclas = teclas;
 		ventana.multicastControl = controlMulticast;
 		try {
-			ventana.clienteEnviar = red.enviar.Cliente.getInstance();
+			ventana.clienteEnviar = new red.enviar.Cliente(ventana, controlMulticast);
 			ventana.clienteEnviar.start();
 		} catch (ClassNotFoundException e1) {
 			// TODO Auto-generated catch block

@@ -85,7 +85,7 @@ public class Cliente extends Thread {
 		this.multicastControl = controlBroadcasting;
 	}
 
-	private byte[] ReadStream() throws IOException {
+	private byte[] ReadStream() {
 		byte[] data_buff = null;
 		try {
 			int b = 0;
@@ -143,7 +143,6 @@ public class Cliente extends Thread {
 
 		out = new DataOutputStream(sc.getOutputStream());
 		out.writeUTF(one);
-		din = new DataInputStream(sc.getInputStream());
 
 		if (one.equals("si")) {
 			out.writeInt(numero);
@@ -185,9 +184,6 @@ public class Cliente extends Thread {
 							}
 							if (!ventana.panBarraProgreso.nombre.contentEquals(outFile.getName())) {
 								ventana.panBarraProgreso.setNombre(outFile.getName());
-							}
-							if (rw != null) {
-								rw.close();
 							}
 							rw = new RandomAccessFile(ruta + File.separator + fileName, "rw");
 							dout.write(CreateDataPacket("125".getBytes("UTF8"),
@@ -263,8 +259,6 @@ public class Cliente extends Thread {
 		ventana.panBarraProgreso.setPorcentajeCero();
 		sc.close();
 		rw.close();
-		din.close();
-		dout.close();
 	}
 
 	/**
@@ -316,15 +310,6 @@ public class Cliente extends Thread {
 			}
 			if (sc != null) {
 				sc.close();
-			}
-			if (din != null) {
-				din.close();
-			}
-			if (dout != null) {
-				dout.close();
-			}
-			if (rw != null) {
-				rw.close();
 			}
 		} catch (IOException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);

@@ -21,7 +21,6 @@ import red.compartirContenido.Servidor;
 import ventana.Ventana;
 
 public class MulticastControl extends Thread {
-	private static MulticastControl INSTANCE;
 	private final int BYTE_LENGTH = 10, PUERTO_CAMBIO_SERVIDOR = 4010;
 	private final String IP_BROADCAST = "224.0.0.1";
 	public MulticastSocket socket;
@@ -38,21 +37,20 @@ public class MulticastControl extends Thread {
 	private red.compartirFicheros.Servidor servidorCompartirFicheros;
 	private red.historial.Servidor servidorHistorial;
 
+	public MulticastControl(Ventana ventana) {
+		this.ventana = ventana;
+		b = new byte[BYTE_LENGTH];
+		ip_servidor = "";
+		seguir = true;
+		soyServidor = false;
+	}
+
 	public MulticastControl() {
 		b = new byte[BYTE_LENGTH];
 		ip_servidor = "";
 		seguir = true;
 		soyServidor = false;
 	}
-	
-	public static MulticastControl getInstance() {
-        if(INSTANCE == null) {
-            INSTANCE = new MulticastControl();
-            INSTANCE.ventana = Ventana.getInstance();
-        }
-        
-        return INSTANCE;
-    }
 
 	public void close() {
 		seguir = false;

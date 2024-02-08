@@ -7,8 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 
 import javax.imageio.ImageIO;
 
@@ -128,24 +126,6 @@ public class Serializar_funciones {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	/**
-	 * Devuelve si hay conectividad con el ordenador
-	 * 
-	 * @param host {@link String} ip a realizar peticion
-	 * @param port {@link int} numero de puerto
-	 * @param timeout {@link int} tiempo en milisegundos
-	 * @return {@link boolean} devuelve true si hay conectividad con el ordenador.
-	 */
-	
-	public static boolean pingHost(String host, int port, int timeout) {
-	    try (Socket socket = new Socket()) {
-	        socket.connect(new InetSocketAddress(host, port), timeout);
-	        return true;
-	    } catch (IOException e) {
-	        return false; 
-	    }
 	}
 
 }

@@ -165,9 +165,6 @@ public class ClienteComando extends Thread {
 							if (!hiloBarraProgreso.barraProgreso.nombre.equals(outFile.getName())) {
 								hiloBarraProgreso.barraProgreso.setNombre(outFile.getName());
 							}
-							if (rw != null) {
-								rw.close();
-							}
 							rw = new RandomAccessFile(ruta + fileName, "rw");
 							dout.write(CreateDataPacket("125".getBytes("UTF8"),
 									String.valueOf(current_file_pointer).getBytes("UTF8")));

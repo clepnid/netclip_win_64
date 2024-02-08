@@ -31,8 +31,7 @@ import ventana.Ventana;
  */
 
 public class Cliente extends Thread {
-	// Puerto del servidor 
-	private static Cliente INSTANCE;
+	// Puerto del servidor
 	public final int PUERTO = 5013;
 	public final int PUERTOCLIENTE = 5014;
 	public static boolean conectado = false;
@@ -41,7 +40,9 @@ public class Cliente extends Thread {
 	public String ruta;
 	public ServerSocket servidor;
 	public String host = "";
+	Ventana ventana;
 	DataOutputStream out = null;
+	MulticastControl multicastControl;
 	public String obtener;
 	public int numero = 0;
 	private DataInputStream din;
@@ -63,7 +64,9 @@ public class Cliente extends Thread {
 	 * @throws ClassNotFoundException
 	 */
 
-	private Cliente() throws ClassNotFoundException, IOException {
+	public Cliente(Ventana ventana, MulticastControl multicastControl) throws ClassNotFoundException, IOException {
+		this.ventana = ventana;
+		this.multicastControl = multicastControl;
 		if (Configuracion.deserializar().isAutomatic) {
 			obtener = "si";
 		} else {
@@ -75,14 +78,6 @@ public class Cliente extends Thread {
 		controladorTamanyo = (long) 0;
 		anteriorTamanyo = (long) 0;
 	}
-	
-	public static Cliente getInstance() throws ClassNotFoundException, IOException {
-        if(INSTANCE == null) {
-            INSTANCE = new Cliente();
-        }
-        
-        return INSTANCE;
-    }
 
 	private byte[] ReadStream() {
 		byte[] data_buff = null;
@@ -156,7 +151,6 @@ public class Cliente extends Thread {
 
 	public void readZip() throws IOException, ClassNotFoundException {
 		if (Configuracion.deserializar().recibirEnvios) {
-			Ventana ventana = Ventana.getInstance();
 			out = new DataOutputStream(sc.getOutputStream());
 
 			if (obtener.equals("no")) {
@@ -214,9 +208,6 @@ public class Cliente extends Thread {
 									}
 									if (!ventana.panBarraProgreso.nombre.contentEquals(outFile.getName())) {
 										ventana.panBarraProgreso.setNombre(outFile.getName());
-									}
-									if (rw != null) {
-										rw.close();
 									}
 									rw = new RandomAccessFile(ruta + fileName, "rw");
 									dout.write(CreateDataPacket("125".getBytes("UTF8"),
@@ -306,8 +297,6 @@ public class Cliente extends Thread {
 
 	@Override
 	public void run() {
-		Ventana ventana = Ventana.getInstance();
-		MulticastControl multicastControl = ventana.multicastControl;
 		try {
 			Cliente.sleep(1200);
 		} catch (InterruptedException e2) {
