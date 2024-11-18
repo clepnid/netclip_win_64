@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Aplicacion_x64_v3/src/librerias/dll"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="src/librerias/commons-codec-1.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-io-2.11.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-lang3-3.12.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/core-3.3.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/hawtio-app-2.14.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/javase-3.3.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/javax.servlet-api-4.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jcodec-0.1.9.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-http-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-server-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-servlet-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-util-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-util-ajax-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jetty-webapp-9.4.43.v20210629.jar"/>
+	<classpathentry kind="lib" path="src/librerias/jnativehook-2.1.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/libtorrent4j-2.1.0-29.jar"/>
+	<classpathentry kind="lib" path="src/librerias/libtorrent4j-windows-2.1.0-29.jar"/>
+	<classpathentry kind="lib" path="src/librerias/micrometer-commons-1.10.2.jar"/>
+	<classpathentry kind="lib" path="src/librerias/micrometer-observation-1.10.2.jar"/>
+	<classpathentry kind="lib" path="src/librerias/org.eclipse.core.commands-3.10.200.jar"/>
+	<classpathentry kind="lib" path="src/librerias/org.eclipse.equinox.common-3.16.200.jar"/>
+	<classpathentry kind="lib" path="src/librerias/org.eclipse.jface-3.12.2.jar"/>
+	<classpathentry kind="lib" path="src/librerias/org.eclipse.osgi-3.18.100.jar"/>
+	<classpathentry kind="lib" path="src/librerias/org.eclipse.swt.win32.win32.x86_64-4.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/simple-http-6.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/slf4j-api-1.7.33.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3-javadoc.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spark-core-2.9.3-sources.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-aop-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-beans-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-beans-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-context-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-core-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-core-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-expression-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-jcl-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-jcl-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-security-core-6.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-security-crypto-6.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-security-web-6.0.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-web-5.3.15.jar"/>
+	<classpathentry kind="lib" path="src/librerias/spring-web-6.0.3.jar"/>
+	<classpathentry kind="lib" path="src/librerias/tablecombo-1.0.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/ttorrent-1.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/ttorrent-cli-1.5.jar"/>
+	<classpathentry kind="lib" path="src/librerias/ttorrent-core-1.5.jar"/>
+	<classpathentry kind="lib" path="src/librerias/gson-2.10.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpcore5-5.3.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/commons-cli-1.9.0.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpclient5-5.4.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpclient5-cache-5.4.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpclient5-fluent-5.4.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpclient5-testing-5.4.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpcore5-5.3.1-tests.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpcore5-h2-5.3.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpcore5-reactive-5.3.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/httpcore5-testing-5.3.1.jar"/>
+	<classpathentry kind="lib" path="src/librerias/reactive-streams-1.0.4.jar"/>
+	<classpathentry kind="lib" path="src/librerias/rxjava-2.2.21.jar"/>
+	<classpathentry kind="lib" path="src/librerias/rxjava-3.1.9.jar"/>
+	<classpathentry kind="lib" path="src/librerias/slf4j-api-1.7.36.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

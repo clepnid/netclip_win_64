@@ -1,0 +1,6 @@
+ERROR: no se pudo terminar el proceso "python.exe" con PID 16708.
+Motivo: No hay ninguna instancia activa de la tarea.
+ERROR: no se pudo terminar el proceso "python.exe" con PID 18948.
+Motivo: No hay ninguna instancia activa de la tarea.
+ERROR: no se pudo terminar el proceso "python.exe" con PID 10820.
+Motivo: No hay ninguna instancia activa de la tarea.
